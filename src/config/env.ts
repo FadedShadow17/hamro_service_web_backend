@@ -33,7 +33,7 @@ function getEnvNumber(key: string, defaultValue?: number): number {
 
 export const env: EnvConfig = {
   port: getEnvNumber('PORT', 4000),
-  mongodbUri: getEnv('MONGODB_URI', 'mongodb://127.0.0.1:27017/hamro_service_web'),
+  mongodbUri: getEnv('MONGODB_URI', 'mongodb+srv://dahalrojit1700:Whatsup!1@cluster0.rkfblb5.mongodb.net/hamro__service_web'),
   jwtSecret: getEnv('JWT_SECRET', 'change-me'),
   jwtExpiresIn: getEnv('JWT_EXPIRES_IN', '1d'),
   bcryptSaltRounds: getEnvNumber('BCRYPT_SALT_ROUNDS', 10),

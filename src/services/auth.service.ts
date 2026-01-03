@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { UserRepository } from '../repositories/user.repository';
 import { RegisterDTO, LoginDTO } from '../dtos/auth.dto';
 import { env } from '../config/env';
+import { HttpError } from '../errors/http-error';
 
 export interface SafeUser {
   id: string;
@@ -32,9 +33,7 @@ export class AuthService {
     // Check if email already exists
     const existingUser = await this.userRepository.findByEmail(dto.email);
     if (existingUser) {
-      const error: any = new Error('Email already exists');
-      error.status = 409;
-      throw error;
+      throw new HttpError(409, 'Email already exists');
     }
 
     // Hash password
@@ -66,31 +65,25 @@ export class AuthService {
     // Find user by email
     const user = await this.userRepository.findByEmail(dto.email);
     if (!user) {
-      const error: any = new Error('Invalid email or password');
-      error.status = 401;
-      throw error;
+      throw new HttpError(401, 'Invalid email or password');
     }
 
     // Compare password hash
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
-      const error: any = new Error('Invalid email or password');
-      error.status = 401;
-      throw error;
+      throw new HttpError(401, 'Invalid email or password');
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: user._id.toString(),
-        email: user.email,
-        role: user.role,
-      },
-      env.jwtSecret,
-      {
-        expiresIn: env.jwtExpiresIn,
-      }
-    );
+    const payload = {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role,
+    };
+    
+    const token = jwt.sign(payload, env.jwtSecret, {
+      expiresIn: env.jwtExpiresIn,
+    } as SignOptions);
 
     // Return token + user info
     return {
