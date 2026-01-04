@@ -28,5 +28,12 @@ export class UserRepository {
 
     return await user.save();
   }
+
+  /**
+   * Find user by ID
+   */
+  async findById(id: string): Promise<IUser | null> {
+    return await User.findById(id);
+  }
 }
 

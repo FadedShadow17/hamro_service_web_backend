@@ -3,6 +3,7 @@ import cors from 'cors';
 import { connectMongoDB, disconnectMongoDB } from './database/mongodb';
 import { env } from './config/env';
 import authRoutes from './routes/auth.route';
+import contactRoutes from './routes/contact.route';
 import { errorHandler } from './middleware/error-handler';
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/v1/contact', contactRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
