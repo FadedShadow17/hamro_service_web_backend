@@ -1,7 +1,7 @@
 import { ContactRepository, ContactRepositoryImpl } from '../repositories/contact.repository';
 import { CreateContactDTO } from '../dtos/contact.dto';
-import { UserRepository } from '../repositories/user.repository';
-import { HttpError } from '../errors/http-error';
+import { UserRepository } from '../infrastructure/db/mongoose/repositories/user.repository';
+import { HttpError } from '../shared/errors/http-error';
 import { IContact } from '../models/contact.model';
 
 export interface ContactResponse {
@@ -85,4 +85,3 @@ export class ContactService {
     };
   }
 }
-
