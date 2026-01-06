@@ -17,7 +17,8 @@ export interface IServiceCategoryRepository {
 export interface IServiceRepository {
   findAll(active?: boolean): Promise<ServiceEntity[]>;
   findById(id: string): Promise<ServiceEntity | null>;
-  findByCategoryId(categoryId: string, active?: boolean): Promise<ServiceEntity[]>;
+  findBySlug(slug: string): Promise<ServiceEntity | null>;
+  findByCategoryId(categoryId: string, active?: boolean): Promise<ServiceEntity[]>; // Deprecated but kept for backward compatibility
   create(data: Omit<ServiceEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceEntity>;
 }
 

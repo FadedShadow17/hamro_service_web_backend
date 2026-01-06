@@ -11,10 +11,13 @@ export class ServicesController {
    */
   async list(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const active = req.query.active === 'true' ? true : req.query.active === 'false' ? false : undefined;
       const useCase = new ListServicesUseCase();
-      const services = await useCase.execute(active);
-      res.status(200).json({ services });
+      // Always return only active services for this endpoint
+      const services = await useCase.execute(true);
+      res.status(200).json({ 
+        success: true,
+        data: services 
+      });
     } catch (error) {
       next(error);
     }

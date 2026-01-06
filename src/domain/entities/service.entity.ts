@@ -1,10 +1,11 @@
 export interface ServiceEntity {
   id: string;
-  categoryId: string;
   name: string;
+  slug: string;
   description: string;
-  image?: string;
-  active: boolean;
+  icon: string;
+  basePrice: number;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

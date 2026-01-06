@@ -1,37 +1,45 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IService extends Document {
-  categoryId: Types.ObjectId;
   name: string;
+  slug: string;
   description: string;
-  image?: string;
-  active: boolean;
+  icon: string;
+  basePrice: number;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const serviceSchema = new Schema<IService>(
   {
-    categoryId: {
-      type: Schema.Types.ObjectId,
-      ref: 'ServiceCategory',
-      required: [true, 'Category ID is required'],
-    },
     name: {
       type: String,
       required: [true, 'Name is required'],
       trim: true,
     },
+    slug: {
+      type: String,
+      required: [true, 'Slug is required'],
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
     description: {
       type: String,
-      required: [true, 'Description is required'],
       trim: true,
     },
-    image: {
+    icon: {
       type: String,
+      required: [true, 'Icon is required'],
       trim: true,
     },
-    active: {
+    basePrice: {
+      type: Number,
+      required: [true, 'Base price is required'],
+      min: [0, 'Base price must be positive'],
+    },
+    isActive: {
       type: Boolean,
       default: true,
     },
@@ -42,7 +50,7 @@ const serviceSchema = new Schema<IService>(
 );
 
 // Index for faster queries
-serviceSchema.index({ categoryId: 1, active: 1 });
+serviceSchema.index({ slug: 1 });
+serviceSchema.index({ isActive: 1 });
 
 export const Service = mongoose.model<IService>('Service', serviceSchema);
-
