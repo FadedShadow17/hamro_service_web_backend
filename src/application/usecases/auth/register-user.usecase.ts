@@ -37,6 +37,7 @@ export class RegisterUserUseCase {
       name: user.name,
       email: user.email,
       phone: user.phone,
+      profileImageUrl: user.profileImageUrl,
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,

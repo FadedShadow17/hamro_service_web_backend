@@ -5,6 +5,7 @@ export interface UserEntity {
   name: string;
   email: string;
   phone?: string; // Nepal format: +977-XXXXXXXXX
+  profileImageUrl?: string; // URL to profile image
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;

@@ -152,6 +152,36 @@ export class ProviderVerificationController {
   }
 
   /**
+   * Get verification summary (status and role only)
+   * GET /api/provider/me/verification
+   */
+  async getVerificationSummary(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized', code: 'UNAUTHORIZED' });
+      }
+
+      const providerProfileRepo = new ProviderProfileRepository();
+      const profile = await providerProfileRepo.findByUserId(req.user.id);
+      
+      // If profile doesn't exist, return default NOT_SUBMITTED status
+      if (!profile) {
+        return res.status(200).json({
+          status: VERIFICATION_STATUS.NOT_SUBMITTED,
+          role: null,
+        });
+      }
+
+      res.status(200).json({
+        status: profile.verificationStatus,
+        role: profile.serviceRole || null,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Review verification (Admin only)
    * PATCH /api/admin/provider-verification/:providerId
    */

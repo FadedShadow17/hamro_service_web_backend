@@ -32,6 +32,14 @@ router.get(
   (req, res, next) => verificationController.getVerificationStatus(req, res, next)
 );
 
+// GET /api/provider/me/verification - Get verification summary (status and role only)
+router.get(
+  '/me/verification',
+  requireAuth,
+  requireRole(USER_ROLES.PROVIDER),
+  (req, res, next) => verificationController.getVerificationSummary(req, res, next)
+);
+
 // PATCH /api/admin/provider-verification/:providerId - Review verification (Admin)
 router.patch(
   '/:providerId',

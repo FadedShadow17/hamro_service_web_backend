@@ -11,6 +11,7 @@ import availabilityRoutes from './presentation/routes/availability.route';
 import bookingsRoutes from './presentation/routes/bookings.route';
 import providerBookingsRoutes from './presentation/routes/provider-bookings.route';
 import providerVerificationRoutes from './presentation/routes/provider-verification.route';
+import usersRoutes from './presentation/routes/users.route';
 import { errorHandler } from './presentation/middlewares/error-handler';
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/provider', availabilityRoutes);
 app.use('/api/bookings', bookingsRoutes);
 app.use('/api/provider/bookings', providerBookingsRoutes);
 app.use('/api/provider/verification', providerVerificationRoutes);
+app.use('/api/users', usersRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

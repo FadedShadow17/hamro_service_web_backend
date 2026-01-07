@@ -49,6 +49,7 @@ export class LoginUserUseCase {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        profileImageUrl: user.profileImageUrl,
         role: normalizedRole,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,

@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string;
   phone?: string; // Nepal format: +977-XXXXXXXXX
+  profileImageUrl?: string; // URL to profile image
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;
@@ -33,6 +34,10 @@ const userSchema = new Schema<IUser>(
       type: String,
       trim: true,
       match: [/^\+977-[0-9]{9,10}$/, 'Phone number must be in format +977-XXXXXXXXX'],
+    },
+    profileImageUrl: {
+      type: String,
+      trim: true,
     },
     role: {
       type: String,

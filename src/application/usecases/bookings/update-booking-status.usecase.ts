@@ -5,6 +5,7 @@ import { ProviderProfileRepository } from '../../../infrastructure/db/mongoose/r
 import { BookingEntity } from '../../../domain/entities/booking.entity';
 import { BookingStatus } from '../../../shared/constants';
 import { HttpError } from '../../../shared/errors/http-error';
+import { isCategoryMatch } from '../../../shared/utils/category-matcher';
 
 export class UpdateBookingStatusUseCase {
   private bookingRepository: IBookingRepository;
@@ -63,8 +64,9 @@ export class UpdateBookingStatusUseCase {
       }
 
       // Category restriction: Check if provider's service role matches booking's service category
-      // Only check for ACCEPT/DECLINE actions (not COMPLETED, as that's after acceptance)
-      if (status === 'CONFIRMED' || status === 'DECLINED') {
+      // ONLY enforce for ACCEPT action (CONFIRMED status)
+      // DECLINE should always be allowed regardless of category match
+      if (status === 'CONFIRMED') {
         // Fetch service to get service name/category
         const service = await this.serviceRepository.findById(booking.serviceId);
         if (!service) {
@@ -77,42 +79,34 @@ export class UpdateBookingStatusUseCase {
           throw new HttpError(404, 'Provider profile not found', undefined, 'PROVIDER_PROFILE_NOT_FOUND');
         }
 
-        // Map service name to expected provider role (same logic as create-booking)
-        const roleMapping: Record<string, string> = {
-          'electrical': 'Electrician',
-          'plumbing': 'Plumber',
-          'cleaning': 'Cleaner',
-          'carpentry': 'Carpenter',
-          'painting': 'Painter',
-          'hvac': 'HVAC Technician',
-          'appliance repair': 'Appliance Repair Technician',
-          'gardening': 'Gardener/Landscaper',
-          'pest control': 'Pest Control Specialist',
-          'water tank cleaning': 'Water Tank Cleaner',
-        };
-
-        const serviceName = service.name.toLowerCase().trim();
-        const expectedRole = roleMapping[serviceName];
-
-        // If mapping exists, check if provider's role matches
-        if (expectedRole) {
-          if (!providerProfile.serviceRole) {
-            throw new HttpError(403, 'You are not verified for this service category. Please complete your verification with a service role.', undefined, 'CATEGORY_NOT_ALLOWED');
-          }
-
-          if (providerProfile.serviceRole !== expectedRole) {
-            console.warn('[Booking Status Update] Category mismatch:', {
-              bookingId,
-              serviceName: service.name,
-              expectedRole,
-              providerRole: providerProfile.serviceRole,
-              providerId: userId,
-            });
-            throw new HttpError(403, `You are not verified for this service category. This booking requires ${expectedRole}, but you are verified as ${providerProfile.serviceRole}.`, undefined, 'CATEGORY_NOT_ALLOWED');
-          }
+        // Check if provider has a verified role
+        if (!providerProfile.serviceRole) {
+          throw new HttpError(403, 'You are not verified for this service category. Please complete your verification with a service role.', undefined, 'CATEGORY_NOT_ALLOWED');
         }
-        // If no mapping exists, allow the action (graceful fallback for unmapped services)
+
+        // Use category matcher utility to check if role matches service category
+        const categoryMatches = isCategoryMatch(providerProfile.serviceRole, service.name);
+
+        if (!categoryMatches) {
+          console.warn('[Booking Status Update] Category mismatch - Accept blocked:', {
+            bookingId,
+            serviceName: service.name,
+            providerRole: providerProfile.serviceRole,
+            providerId: userId,
+            action: 'ACCEPT',
+          });
+          throw new HttpError(403, `You are not verified for this service category. This booking is for "${service.name}", but you are verified as "${providerProfile.serviceRole}". You can decline this booking if needed.`, undefined, 'CATEGORY_NOT_ALLOWED');
+        }
+
+        console.info('[Booking Status Update] Category match verified:', {
+          bookingId,
+          serviceName: service.name,
+          providerRole: providerProfile.serviceRole,
+          providerId: userId,
+          action: 'ACCEPT',
+        });
       }
+      // Note: DECLINE is allowed regardless of category match (no check needed)
 
       // Validate provider status transitions
       if (fromStatus === 'PENDING') {
