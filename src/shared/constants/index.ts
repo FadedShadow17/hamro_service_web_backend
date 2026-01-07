@@ -47,3 +47,13 @@ export const DAYS_OF_WEEK = {
   SATURDAY: 6,
 } as const;
 
+// Provider Verification Status
+export const VERIFICATION_STATUS = {
+  NOT_SUBMITTED: 'NOT_SUBMITTED',
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+} as const;
+
+export type VerificationStatus = typeof VERIFICATION_STATUS[keyof typeof VERIFICATION_STATUS];
+

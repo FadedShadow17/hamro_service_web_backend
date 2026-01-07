@@ -1,4 +1,4 @@
-import { KathmanduArea } from '../../shared/constants';
+import { KathmanduArea, VerificationStatus } from '../../shared/constants';
 
 export interface ProviderProfileEntity {
   id: string;
@@ -8,6 +8,25 @@ export interface ProviderProfileEntity {
   phone?: string;
   bio?: string;
   active: boolean;
+  // Verification fields
+  verificationStatus: VerificationStatus;
+  fullName?: string;
+  phoneNumber?: string;
+  citizenshipNumber?: string;
+  citizenshipFrontImage?: string;
+  citizenshipBackImage?: string;
+  profileImage?: string;
+  selfieImage?: string;
+  address?: {
+    province: string;
+    district: string;
+    municipality: string;
+    ward: string;
+    tole?: string;
+    street?: string;
+  };
+  verifiedAt?: Date;
+  rejectionReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }
