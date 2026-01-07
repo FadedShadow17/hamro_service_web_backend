@@ -211,6 +211,9 @@ export class BookingRepository implements IBookingRepository {
       timeSlot: booking.timeSlot,
       area: booking.area,
       status: booking.status,
+      paymentStatus: booking.paymentStatus || 'UNPAID',
+      paidAt: booking.paidAt || undefined,
+      paymentMethod: booking.paymentMethod || undefined,
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
     };

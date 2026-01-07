@@ -13,6 +13,7 @@ import providerBookingsRoutes from './presentation/routes/provider-bookings.rout
 import providerDashboardRoutes from './presentation/routes/provider-dashboard.route';
 import providerVerificationRoutes from './presentation/routes/provider-verification.route';
 import usersRoutes from './presentation/routes/users.route';
+import paymentsRoutes from './presentation/routes/payments.route';
 import { errorHandler } from './presentation/middlewares/error-handler';
 
 const app = express();
@@ -39,6 +40,7 @@ app.use('/api/provider/bookings', providerBookingsRoutes);
 app.use('/api/provider/dashboard', providerDashboardRoutes);
 app.use('/api/provider/verification', providerVerificationRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

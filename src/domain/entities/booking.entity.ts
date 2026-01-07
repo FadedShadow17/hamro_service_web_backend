@@ -33,6 +33,9 @@ export interface BookingEntity {
   timeSlot: string; // Format: "HH:mm" (e.g., "09:00")
   area: KathmanduArea;
   status: BookingStatus;
+  paymentStatus?: 'UNPAID' | 'PAID'; // Payment status
+  paidAt?: Date; // Date when payment was made
+  paymentMethod?: 'COD' | 'ONLINE'; // Payment method used
   createdAt: Date;
   updatedAt: Date;
 }

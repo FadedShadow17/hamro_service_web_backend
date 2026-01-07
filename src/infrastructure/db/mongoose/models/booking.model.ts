@@ -9,6 +9,9 @@ export interface IBooking extends Document {
   timeSlot: string; // Format: "HH:mm"
   area: typeof KATHMANDU_AREAS[number];
   status: typeof BOOKING_STATUS[keyof typeof BOOKING_STATUS];
+  paymentStatus?: 'UNPAID' | 'PAID'; // Payment status
+  paidAt?: Date; // Date when payment was made
+  paymentMethod?: 'COD' | 'ONLINE'; // Payment method used
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +54,20 @@ const bookingSchema = new Schema<IBooking>(
       required: true,
       enum: Object.values(BOOKING_STATUS),
       default: BOOKING_STATUS.PENDING,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['UNPAID', 'PAID'],
+      default: 'UNPAID',
+    },
+    paidAt: {
+      type: Date,
+      required: false,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['COD', 'ONLINE'],
+      required: false,
     },
   },
   {
