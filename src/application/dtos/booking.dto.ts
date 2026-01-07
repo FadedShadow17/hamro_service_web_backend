@@ -30,3 +30,12 @@ export const createBookingSchema = z.preprocess(
 
 export type CreateBookingDTO = z.infer<typeof createBookingSchema>;
 
+// Update booking status DTO
+export const updateBookingStatusSchema = z.object({
+  status: z.enum(['CONFIRMED', 'DECLINED', 'COMPLETED', 'CANCELLED'], {
+    errorMap: () => ({ message: 'Invalid booking status' }),
+  }),
+});
+
+export type UpdateBookingStatusDTO = z.infer<typeof updateBookingStatusSchema>;
+

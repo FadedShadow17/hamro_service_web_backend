@@ -20,6 +20,7 @@ export class BookingRepository implements IBookingRepository {
       query.status = status;
     }
     const bookings = await Booking.find(query)
+      .populate('userId')
       .populate('serviceId')
       .sort({ date: -1, createdAt: -1 });
     // Populate providerId only for bookings that have it
@@ -66,6 +67,14 @@ export class BookingRepository implements IBookingRepository {
     if (booking && booking.providerId) {
       await booking.populate('providerId');
     }
+    // Re-populate to ensure all fields are fresh
+    if (booking) {
+      await booking.populate('userId');
+      await booking.populate('serviceId');
+      if (booking.providerId) {
+        await booking.populate('providerId');
+      }
+    }
     return booking ? this.mapToEntity(booking) : null;
   }
 
@@ -95,6 +104,16 @@ export class BookingRepository implements IBookingRepository {
         }
       : undefined;
 
+    // Extract provider details if populated (for user dashboard)
+    const provider = (booking.providerId as any)?.fullName || (booking.providerId as any)?._id
+      ? {
+          id: (booking.providerId as any)._id.toString(),
+          fullName: (booking.providerId as any).fullName || undefined,
+          serviceRole: (booking.providerId as any).serviceRole || undefined,
+          phone: (booking.providerId as any).phoneNumber || (booking.providerId as any).phone || undefined,
+        }
+      : undefined;
+
     return {
       id: booking._id.toString(),
       userId: booking.userId.toString(),
@@ -102,6 +121,7 @@ export class BookingRepository implements IBookingRepository {
       serviceId: serviceId,
       service: service,
       user: user, // Include user info for provider dashboard
+      provider: provider, // Include provider info for user dashboard
       date: booking.date,
       timeSlot: booking.timeSlot,
       area: booking.area,

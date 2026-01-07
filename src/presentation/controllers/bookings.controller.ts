@@ -3,7 +3,7 @@ import { CreateBookingUseCase } from '../../application/usecases/bookings/create
 import { GetUserBookingsUseCase } from '../../application/usecases/bookings/get-user-bookings.usecase';
 import { GetProviderBookingsUseCase } from '../../application/usecases/bookings/get-provider-bookings.usecase';
 import { UpdateBookingStatusUseCase } from '../../application/usecases/bookings/update-booking-status.usecase';
-import { createBookingSchema } from '../../application/dtos/booking.dto';
+import { createBookingSchema, updateBookingStatusSchema } from '../../application/dtos/booking.dto';
 import { IProviderProfileRepository } from '../../application/ports/repositories.port';
 import { ProviderProfileRepository } from '../../infrastructure/db/mongoose/repositories/provider-profile.repository';
 import { AuthRequest } from '../middlewares/auth.middleware';
@@ -191,6 +191,47 @@ export class BookingsController {
 
       res.status(200).json({
         message: 'Booking cancelled successfully',
+        booking,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Update booking status (provider) - Unified endpoint
+   * PATCH /api/provider/bookings/:id/status
+   */
+  async updateBookingStatus(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized', code: 'UNAUTHORIZED' });
+      }
+
+      const { id } = req.params;
+      const dto = updateBookingStatusSchema.parse(req.body);
+
+      // Get provider profile for this user
+      const providerProfileRepo = new ProviderProfileRepository();
+      const profile = await providerProfileRepo.findByUserId(req.user.id);
+      if (!profile) {
+        return res.status(404).json({ message: 'Provider profile not found', code: 'PROVIDER_PROFILE_NOT_FOUND' });
+      }
+
+      const useCase = new UpdateBookingStatusUseCase();
+      const booking = await useCase.execute(id, dto.status, profile.id, true);
+
+      let message = 'Booking status updated successfully';
+      if (dto.status === 'CONFIRMED') {
+        message = 'Booking accepted successfully';
+      } else if (dto.status === 'DECLINED') {
+        message = 'Booking declined successfully';
+      } else if (dto.status === 'COMPLETED') {
+        message = 'Booking marked as completed';
+      }
+
+      res.status(200).json({
+        message,
         booking,
       });
     } catch (error) {
