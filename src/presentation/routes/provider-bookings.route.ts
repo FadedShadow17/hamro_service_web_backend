@@ -27,6 +27,11 @@ router.patch('/:id/complete', requireAuth, requireRole(USER_ROLES.PROVIDER), req
   bookingsController.completeBooking(req, res, next)
 );
 
+// PATCH /api/provider/bookings/:id/cancel - Cancel booking (provider)
+router.patch('/:id/cancel', requireAuth, requireRole(USER_ROLES.PROVIDER), (req, res, next) =>
+  bookingsController.cancelProviderBooking(req, res, next)
+);
+
 // PATCH /api/provider/bookings/:id/status - Update booking status (unified endpoint)
 // Note: This endpoint requires verification for CONFIRMED and COMPLETED statuses
 // The requireVerification middleware should be applied conditionally, but for now

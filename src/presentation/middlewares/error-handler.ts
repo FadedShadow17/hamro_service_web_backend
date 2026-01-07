@@ -53,8 +53,15 @@ export function errorHandler(
 
   // Handle unknown errors → 500
   console.error('Unhandled error:', error);
+  console.error('Error stack:', error.stack);
+  console.error('Error name:', error.name);
+  console.error('Error message:', error.message);
   res.status(500).json({
     message: 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { 
+      error: error.message,
+      stack: error.stack 
+    }),
   });
 }
 

@@ -54,6 +54,7 @@ export interface IBookingRepository {
   findById(id: string): Promise<BookingEntity | null>;
   findByUserId(userId: string, status?: BookingStatus): Promise<BookingEntity[]>;
   findByProviderId(providerId: string, status?: BookingStatus): Promise<BookingEntity[]>;
+  findAvailableAndAssignedBookings(providerId: string, status?: BookingStatus): Promise<BookingEntity[]>;
   findByProviderDateAndTime(providerId: string, date: string, timeSlot: string): Promise<BookingEntity | null>;
   create(data: Omit<BookingEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<BookingEntity>;
   update(id: string, data: Partial<Omit<BookingEntity, 'id' | 'createdAt' | 'updatedAt'>>): Promise<BookingEntity | null>;

@@ -5,13 +5,38 @@ import { BookingStatus } from '../../../../shared/constants';
 
 export class BookingRepository implements IBookingRepository {
   async findById(id: string): Promise<BookingEntity | null> {
-    const booking = await Booking.findById(id)
-      .populate('userId')
-      .populate('serviceId');
-    if (booking && booking.providerId) {
-      await booking.populate('providerId');
+    try {
+      const booking = await Booking.findById(id)
+        .populate('userId')
+        .populate('serviceId');
+      
+      if (!booking) {
+        return null;
+      }
+
+      // Conditionally populate providerId if it exists
+      if (booking.providerId) {
+        try {
+          await booking.populate('providerId');
+        } catch (populateError) {
+          // Log but don't fail - providerId might reference a non-existent document
+          console.warn('[Booking Repository] Failed to populate providerId:', {
+            bookingId: id,
+            providerId: booking.providerId,
+            error: populateError instanceof Error ? populateError.message : String(populateError),
+          });
+        }
+      }
+      
+      return this.mapToEntity(booking);
+    } catch (error) {
+      console.error('[Booking Repository] Error in findById:', {
+        bookingId: id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw error;
     }
-    return booking ? this.mapToEntity(booking) : null;
   }
 
   async findByUserId(userId: string, status?: BookingStatus): Promise<BookingEntity[]> {
@@ -37,10 +62,59 @@ export class BookingRepository implements IBookingRepository {
     if (status) {
       query.status = status;
     }
+    
     const bookings = await Booking.find(query)
       .populate('userId')
       .populate('serviceId')
       .sort({ date: -1, createdAt: -1 });
+    
+    return bookings.map(this.mapToEntity);
+  }
+
+  /**
+   * Find available bookings (unassigned) and bookings assigned to a specific provider
+   * Returns:
+   * - All PENDING bookings with providerId = null (available to claim)
+   * - All bookings where providerId = providerId (already claimed by this provider)
+   * 
+   * Note: Category filtering for unassigned bookings is done in the use case layer
+   * to allow for proper category matching logic
+   */
+  async findAvailableAndAssignedBookings(providerId: string, status?: BookingStatus): Promise<BookingEntity[]> {
+    // Query: (status = PENDING AND providerId = null) OR (providerId = providerId)
+    // This shows:
+    // - Unassigned PENDING bookings (available to claim)
+    // - All bookings assigned to this provider (any status)
+    const query: any = {
+      $or: [
+        { status: 'PENDING', providerId: null },
+        { providerId: providerId },
+      ],
+    };
+    
+    // If status filter is provided, apply it
+    if (status) {
+      // For status filter:
+      // - If PENDING: show unassigned PENDING OR assigned PENDING to this provider
+      // - For other statuses: only show bookings assigned to this provider with that status
+      if (status === 'PENDING') {
+        query.$or = [
+          { status: 'PENDING', providerId: null },
+          { providerId: providerId, status: 'PENDING' },
+        ];
+      } else {
+        // For CONFIRMED, COMPLETED, DECLINED, CANCELLED: only show if assigned to this provider
+        query.$or = [
+          { providerId: providerId, status },
+        ];
+      }
+    }
+    
+    const bookings = await Booking.find(query)
+      .populate('userId')
+      .populate('serviceId')
+      .sort({ date: -1, createdAt: -1 });
+    
     return bookings.map(this.mapToEntity);
   }
 
@@ -114,10 +188,21 @@ export class BookingRepository implements IBookingRepository {
         }
       : undefined;
 
+    // Extract providerId correctly - handle both ObjectId and populated object
+    let providerId: string | null = null;
+    if (booking.providerId) {
+      // If populated as object, use _id; otherwise use toString() directly
+      if (typeof booking.providerId === 'object' && (booking.providerId as any)._id) {
+        providerId = (booking.providerId as any)._id.toString();
+      } else {
+        providerId = booking.providerId.toString();
+      }
+    }
+
     return {
       id: booking._id.toString(),
       userId: booking.userId.toString(),
-      providerId: booking.providerId ? booking.providerId.toString() : null,
+      providerId: providerId,
       serviceId: serviceId,
       service: service,
       user: user, // Include user info for provider dashboard
