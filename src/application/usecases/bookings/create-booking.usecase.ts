@@ -217,6 +217,23 @@ export class CreateBookingUseCase {
       }
     }
 
+    // Validate provider if one was assigned
+    if (providerId) {
+      const provider = await this.providerProfileRepository.findById(providerId);
+      if (!provider) {
+        throw new HttpError(404, 'Assigned provider not found', undefined, 'PROVIDER_NOT_FOUND');
+      }
+      if (!provider.active) {
+        throw new HttpError(400, 'Assigned provider is inactive', undefined, 'PROVIDER_INACTIVE');
+      }
+      console.info('[Booking] Provider validated before booking creation:', {
+        providerId,
+        providerName: provider.fullName || provider.serviceRole,
+        providerActive: provider.active,
+        providerVerified: provider.verificationStatus,
+      });
+    }
+
     // Create booking (providerId can be null if no providers available)
     const booking = await this.bookingRepository.create({
       userId,
@@ -228,14 +245,26 @@ export class CreateBookingUseCase {
       status: BOOKING_STATUS.PENDING,
     });
 
-    // Log final booking creation
+    // Log final booking creation with verification
     console.info('[Booking] Booking created successfully:', {
       bookingId: booking.id,
       serviceId: dto.serviceId,
       providerId: providerId || 'none',
+      actualBookingProviderId: booking.providerId || 'none',
       providerSource,
       requestedLocation: dto.area,
+      bookingStatus: booking.status,
     });
+    
+    // Verify providerId was stored correctly
+    if (providerId && !booking.providerId) {
+      console.error('[Booking] CRITICAL: ProviderId was not stored in booking:', {
+        bookingId: booking.id,
+        expectedProviderId: providerId,
+        actualProviderId: booking.providerId,
+      });
+      throw new HttpError(500, 'Failed to assign provider to booking', undefined, 'PROVIDER_ASSIGNMENT_FAILED');
+    }
 
     return booking;
   }
