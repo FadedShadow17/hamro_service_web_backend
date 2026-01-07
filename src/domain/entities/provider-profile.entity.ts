@@ -1,4 +1,4 @@
-import { KathmanduArea, VerificationStatus } from '../../shared/constants';
+import { KathmanduArea, VerificationStatus, ProviderRole } from '../../shared/constants';
 
 export interface ProviderProfileEntity {
   id: string;
@@ -13,6 +13,7 @@ export interface ProviderProfileEntity {
   fullName?: string;
   phoneNumber?: string;
   citizenshipNumber?: string;
+  serviceRole?: ProviderRole;
   citizenshipFrontImage?: string;
   citizenshipBackImage?: string;
   profileImage?: string;

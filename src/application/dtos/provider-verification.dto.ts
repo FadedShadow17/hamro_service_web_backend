@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { VERIFICATION_STATUS } from '../../shared/constants';
+import { VERIFICATION_STATUS, PROVIDER_ROLES } from '../../shared/constants';
 
 // Nepal phone number validation: +977-XXXXXXXXX (9-10 digits)
 const nepalPhoneRegex = /^\+977-[0-9]{9,10}$/;
@@ -16,6 +16,9 @@ export const submitVerificationSchema = z.object({
     .string()
     .min(1, 'Citizenship number is required')
     .max(20, 'Citizenship number cannot exceed 20 characters'),
+  serviceRole: z.enum(PROVIDER_ROLES as [string, ...string[]], {
+    errorMap: () => ({ message: 'Please select a valid service role' }),
+  }),
   address: z.object({
     province: z.string().min(1, 'Province is required').max(50, 'Province cannot exceed 50 characters'),
     district: z.string().min(1, 'District is required').max(50, 'District cannot exceed 50 characters'),
@@ -24,10 +27,10 @@ export const submitVerificationSchema = z.object({
     tole: z.string().max(100, 'Tole cannot exceed 100 characters').optional(),
     street: z.string().max(100, 'Street cannot exceed 100 characters').optional(),
   }),
-  citizenshipFrontImage: z.string().url('Citizenship front image must be a valid URL').optional(),
-  citizenshipBackImage: z.string().url('Citizenship back image must be a valid URL').optional(),
-  profileImage: z.string().url('Profile image must be a valid URL').optional(),
-  selfieImage: z.string().url('Selfie image must be a valid URL').optional(),
+  citizenshipFrontImage: z.string().nullish(),
+  citizenshipBackImage: z.string().nullish(),
+  profileImage: z.string().nullish(),
+  selfieImage: z.string().nullish(),
 });
 
 export type SubmitVerificationDTO = z.infer<typeof submitVerificationSchema>;

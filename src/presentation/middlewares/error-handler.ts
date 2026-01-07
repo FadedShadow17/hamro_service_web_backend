@@ -11,6 +11,7 @@ export function errorHandler(
   // Handle Zod validation errors → 422
   if (error instanceof ZodError) {
     const formattedErrors: Record<string, string[]> = {};
+    const errorMessages: string[] = [];
     
     error.errors.forEach((err) => {
       const path = err.path.join('.');
@@ -18,10 +19,23 @@ export function errorHandler(
         formattedErrors[path] = [];
       }
       formattedErrors[path].push(err.message);
+      // Create user-friendly error message
+      const fieldName = path.split('.').pop() || path;
+      const friendlyFieldName = fieldName
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .replace(/phone number/i, 'Phone Number')
+        .replace(/citizenship number/i, 'Citizenship Number')
+        .replace(/service role/i, 'Service Role')
+        .replace(/full name/i, 'Full Name');
+      errorMessages.push(`${friendlyFieldName}: ${err.message}`);
     });
 
+    // Log validation errors for debugging
+    console.error('Validation errors:', formattedErrors);
+
     res.status(422).json({
-      message: 'Validation error',
+      message: errorMessages.length > 0 ? errorMessages.join('. ') : 'Please check your input and try again',
       errors: formattedErrors,
     });
     return;

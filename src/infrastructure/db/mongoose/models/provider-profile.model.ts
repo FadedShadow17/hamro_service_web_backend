@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
-import { KATHMANDU_AREAS, CITY, VERIFICATION_STATUS } from '../../../../shared/constants';
+import { KATHMANDU_AREAS, CITY, VERIFICATION_STATUS, PROVIDER_ROLES } from '../../../../shared/constants';
 
 export interface IProviderProfile extends Document {
   userId: Types.ObjectId;
@@ -13,6 +13,7 @@ export interface IProviderProfile extends Document {
   fullName?: string;
   phoneNumber?: string; // Nepal format: +977-XXXXXXXXX
   citizenshipNumber?: string;
+  serviceRole?: typeof PROVIDER_ROLES[number]; // Service provider role
   citizenshipFrontImage?: string; // URL to image
   citizenshipBackImage?: string; // URL to image
   profileImage?: string; // URL to image
@@ -83,6 +84,11 @@ const providerProfileSchema = new Schema<IProviderProfile>(
       type: String,
       trim: true,
       maxlength: [20, 'Citizenship number cannot exceed 20 characters'],
+    },
+    serviceRole: {
+      type: String,
+      enum: PROVIDER_ROLES,
+      trim: true,
     },
     citizenshipFrontImage: {
       type: String,

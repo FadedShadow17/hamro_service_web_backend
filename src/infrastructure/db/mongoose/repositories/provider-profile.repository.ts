@@ -47,6 +47,7 @@ export class ProviderProfileRepository implements IProviderProfileRepository {
       fullName: profile.fullName,
       phoneNumber: profile.phoneNumber,
       citizenshipNumber: profile.citizenshipNumber,
+      serviceRole: profile.serviceRole,
       citizenshipFrontImage: profile.citizenshipFrontImage,
       citizenshipBackImage: profile.citizenshipBackImage,
       profileImage: profile.profileImage,

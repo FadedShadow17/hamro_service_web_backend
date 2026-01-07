@@ -57,3 +57,19 @@ export const VERIFICATION_STATUS = {
 
 export type VerificationStatus = typeof VERIFICATION_STATUS[keyof typeof VERIFICATION_STATUS];
 
+// Provider Service Roles (Nepal Context)
+export const PROVIDER_ROLES = [
+  'Plumber',
+  'Electrician',
+  'Cleaner',
+  'Carpenter',
+  'Painter',
+  'HVAC Technician',
+  'Appliance Repair Technician',
+  'Gardener/Landscaper',
+  'Pest Control Specialist',
+  'Water Tank Cleaner',
+] as const;
+
+export type ProviderRole = typeof PROVIDER_ROLES[number];
+
