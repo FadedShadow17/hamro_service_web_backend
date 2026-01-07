@@ -59,11 +59,27 @@ export class BookingRepository implements IBookingRepository {
   }
 
   private mapToEntity(booking: IBooking): BookingEntity {
+    // Check if serviceId is populated (has name property)
+    const serviceId = (booking.serviceId as any)?._id 
+      ? (booking.serviceId as any)._id.toString() 
+      : booking.serviceId.toString();
+    
+    // Extract service details if populated
+    const service = (booking.serviceId as any)?.name 
+      ? {
+          id: (booking.serviceId as any)._id.toString(),
+          name: (booking.serviceId as any).name,
+          description: (booking.serviceId as any).description,
+          basePrice: (booking.serviceId as any).basePrice,
+        }
+      : undefined;
+
     return {
       id: booking._id.toString(),
       userId: booking.userId.toString(),
       providerId: booking.providerId.toString(),
-      serviceId: booking.serviceId.toString(),
+      serviceId: serviceId,
+      service: service,
       date: booking.date,
       timeSlot: booking.timeSlot,
       area: booking.area,

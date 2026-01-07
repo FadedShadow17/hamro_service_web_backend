@@ -22,6 +22,15 @@ export class ProviderProfileRepository implements IProviderProfileRepository {
     return profiles.map(this.mapToEntity);
   }
 
+  async findAll(active?: boolean): Promise<ProviderProfileEntity[]> {
+    const query: any = {};
+    if (active !== undefined) {
+      query.active = active;
+    }
+    const profiles = await ProviderProfile.find(query).populate('userId');
+    return profiles.map(this.mapToEntity);
+  }
+
   async create(data: Omit<ProviderProfileEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProviderProfileEntity> {
     const profile = new ProviderProfile(data);
     const saved = await profile.save();

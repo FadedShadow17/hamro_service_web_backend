@@ -45,6 +45,7 @@ export function errorHandler(
   if (error instanceof HttpError) {
     res.status(error.status).json({
       message: error.message,
+      ...(error.code && { code: error.code }),
       ...(error.errors && { errors: error.errors }),
     });
     return;

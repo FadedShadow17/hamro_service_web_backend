@@ -27,6 +27,7 @@ export interface IProviderProfileRepository {
   findByUserId(userId: string): Promise<ProviderProfileEntity | null>;
   findById(id: string): Promise<ProviderProfileEntity | null>;
   findByArea(area: string, active?: boolean): Promise<ProviderProfileEntity[]>;
+  findAll(active?: boolean): Promise<ProviderProfileEntity[]>;
   create(data: Omit<ProviderProfileEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProviderProfileEntity>;
   update(id: string, data: Partial<Omit<ProviderProfileEntity, 'id' | 'createdAt' | 'updatedAt'>>): Promise<ProviderProfileEntity | null>;
 }
