@@ -29,6 +29,17 @@ export class UpdateBookingStatusUseCase {
       throw new HttpError(404, 'Booking not found', undefined, 'BOOKING_NOT_FOUND');
     }
 
+    // Log booking details before ownership check (for user cancellation)
+    if (!isProvider && status === 'CANCELLED') {
+      console.info('[USER CANCEL] Ownership check', {
+        bookingId,
+        bookingUserId: booking.userId,
+        bookingUserIdType: typeof booking.userId,
+        requestedUserId: userId,
+        requestedUserIdType: typeof userId,
+      });
+    }
+
     const fromStatus = booking.status;
     const toStatus = status;
 
@@ -171,21 +182,41 @@ export class UpdateBookingStatusUseCase {
         throw new HttpError(400, 'Users can only cancel bookings', undefined, 'INVALID_USER_STATUS');
       }
       // Check if booking belongs to this user
-      // SAFE comparison: convert both to strings
+      // SAFE comparison: convert both to strings and trim whitespace
       if (!userId) {
         throw new HttpError(400, 'User ID is required', undefined, 'USER_ID_REQUIRED');
       }
       
-      const bookingUserIdStr = String(booking.userId);
-      const userIdStr = String(userId);
+      // Normalize both IDs to strings and trim
+      const bookingUserIdStr = String(booking.userId).trim();
+      const userIdStr = String(userId).trim();
       
-      if (bookingUserIdStr !== userIdStr) {
+      // Also try comparing as ObjectIds if they're valid
+      let idsMatch = bookingUserIdStr === userIdStr;
+      
+      // If string comparison fails, try ObjectId comparison
+      if (!idsMatch && mongoose.Types.ObjectId.isValid(bookingUserIdStr) && mongoose.Types.ObjectId.isValid(userIdStr)) {
+        try {
+          const bookingUserIdObj = new mongoose.Types.ObjectId(bookingUserIdStr);
+          const userIdObj = new mongoose.Types.ObjectId(userIdStr);
+          idsMatch = bookingUserIdObj.equals(userIdObj);
+        } catch (e) {
+          // If ObjectId conversion fails, fall back to string comparison
+          idsMatch = false;
+        }
+      }
+      
+      if (!idsMatch) {
         console.error('[Booking Status Update] User ownership mismatch:', {
           bookingId,
           bookingUserId: bookingUserIdStr,
           requestedUserId: userIdStr,
+          bookingUserIdType: typeof booking.userId,
+          requestedUserIdType: typeof userId,
+          bookingUserIdRaw: booking.userId,
+          requestedUserIdRaw: userId,
         });
-        throw new HttpError(403, 'Unauthorized: Booking does not belong to this user', undefined, 'UNAUTHORIZED_USER');
+        throw new HttpError(403, 'Booking does not belong to this user', undefined, 'BOOKING_NOT_OWNED');
       }
       
       // User can only cancel PENDING or CONFIRMED bookings

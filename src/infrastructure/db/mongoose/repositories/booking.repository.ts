@@ -188,6 +188,16 @@ export class BookingRepository implements IBookingRepository {
         }
       : undefined;
 
+    // Extract userId correctly - handle both ObjectId and populated object
+    let userId: string;
+    if (typeof booking.userId === 'object' && (booking.userId as any)._id) {
+      // If populated as object, use _id
+      userId = (booking.userId as any)._id.toString();
+    } else {
+      // Otherwise use toString() directly
+      userId = booking.userId.toString();
+    }
+
     // Extract providerId correctly - handle both ObjectId and populated object
     let providerId: string | null = null;
     if (booking.providerId) {
@@ -201,7 +211,7 @@ export class BookingRepository implements IBookingRepository {
 
     return {
       id: booking._id.toString(),
-      userId: booking.userId.toString(),
+      userId: userId,
       providerId: providerId,
       serviceId: serviceId,
       service: service,

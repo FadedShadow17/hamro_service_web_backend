@@ -207,8 +207,17 @@ export class BookingsController {
       }
 
       const { id } = req.params;
+      const reqUserId = req.user.id; // Always use req.user.id (string) from auth middleware
+      
+      // Log before ownership check for debugging
+      console.info('[USER CANCEL]', {
+        bookingId: id,
+        reqUserId: reqUserId,
+        reqUserRole: req.user.role,
+      });
+
       const useCase = new UpdateBookingStatusUseCase();
-      const booking = await useCase.execute(id, BOOKING_STATUS.CANCELLED, req.user.id, false);
+      const booking = await useCase.execute(id, BOOKING_STATUS.CANCELLED, reqUserId, false);
 
       res.status(200).json({
         message: 'Booking cancelled successfully',
