@@ -4,7 +4,8 @@ import { IProviderProfileRepository } from '../../ports/repositories.port';
 import { BookingRepository } from '../../../infrastructure/db/mongoose/repositories/booking.repository';
 import { ProviderProfileRepository } from '../../../infrastructure/db/mongoose/repositories/provider-profile.repository';
 import { BookingEntity } from '../../../domain/entities/booking.entity';
-import { BOOKING_STATUS, HttpError } from '../../../shared/errors/http-error';
+import { BOOKING_STATUS } from '../../../shared/constants';
+import { HttpError } from '../../../shared/errors/http-error';
 
 export class CreateBookingUseCase {
   private bookingRepository: IBookingRepository;

@@ -1,7 +1,8 @@
 import { IBookingRepository } from '../../ports/repositories.port';
 import { BookingRepository } from '../../../infrastructure/db/mongoose/repositories/booking.repository';
 import { BookingEntity } from '../../../domain/entities/booking.entity';
-import { BookingStatus, HttpError } from '../../../shared/errors/http-error';
+import { BookingStatus } from '../../../shared/constants';
+import { HttpError } from '../../../shared/errors/http-error';
 
 export class UpdateBookingStatusUseCase {
   private bookingRepository: IBookingRepository;
