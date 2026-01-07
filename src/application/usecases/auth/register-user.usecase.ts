@@ -27,6 +27,7 @@ export class RegisterUserUseCase {
       name: dto.name,
       email: dto.email,
       passwordHash,
+      phone: dto.phone,
       role: dto.role,
     });
 
@@ -35,6 +36,7 @@ export class RegisterUserUseCase {
       id: user._id.toString(),
       name: user.name,
       email: user.email,
+      phone: user.phone,
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,

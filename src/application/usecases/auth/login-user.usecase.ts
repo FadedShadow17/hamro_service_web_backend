@@ -48,6 +48,7 @@ export class LoginUserUseCase {
         id: user._id.toString(),
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: normalizedRole,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,

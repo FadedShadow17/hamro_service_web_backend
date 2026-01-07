@@ -7,8 +7,10 @@ export class BookingRepository implements IBookingRepository {
   async findById(id: string): Promise<BookingEntity | null> {
     const booking = await Booking.findById(id)
       .populate('userId')
-      .populate('providerId')
       .populate('serviceId');
+    if (booking && booking.providerId) {
+      await booking.populate('providerId');
+    }
     return booking ? this.mapToEntity(booking) : null;
   }
 
@@ -18,9 +20,14 @@ export class BookingRepository implements IBookingRepository {
       query.status = status;
     }
     const bookings = await Booking.find(query)
-      .populate('providerId')
       .populate('serviceId')
       .sort({ date: -1, createdAt: -1 });
+    // Populate providerId only for bookings that have it
+    for (const booking of bookings) {
+      if (booking.providerId) {
+        await booking.populate('providerId');
+      }
+    }
     return bookings.map(this.mapToEntity);
   }
 
@@ -45,7 +52,9 @@ export class BookingRepository implements IBookingRepository {
     const booking = new Booking(data);
     const saved = await booking.save();
     await saved.populate('userId');
-    await saved.populate('providerId');
+    if (saved.providerId) {
+      await saved.populate('providerId');
+    }
     await saved.populate('serviceId');
     return this.mapToEntity(saved);
   }
@@ -53,8 +62,10 @@ export class BookingRepository implements IBookingRepository {
   async update(id: string, data: Partial<Omit<BookingEntity, 'id' | 'createdAt' | 'updatedAt'>>): Promise<BookingEntity | null> {
     const booking = await Booking.findByIdAndUpdate(id, data, { new: true })
       .populate('userId')
-      .populate('providerId')
       .populate('serviceId');
+    if (booking && booking.providerId) {
+      await booking.populate('providerId');
+    }
     return booking ? this.mapToEntity(booking) : null;
   }
 
@@ -74,12 +85,23 @@ export class BookingRepository implements IBookingRepository {
         }
       : undefined;
 
+    // Extract user details if populated (for provider dashboard)
+    const user = (booking.userId as any)?.name
+      ? {
+          id: (booking.userId as any)._id.toString(),
+          name: (booking.userId as any).name,
+          email: (booking.userId as any).email,
+          phone: (booking.userId as any).phone || undefined, // Phone from User model
+        }
+      : undefined;
+
     return {
       id: booking._id.toString(),
       userId: booking.userId.toString(),
-      providerId: booking.providerId.toString(),
+      providerId: booking.providerId ? booking.providerId.toString() : null,
       serviceId: serviceId,
       service: service,
+      user: user, // Include user info for provider dashboard
       date: booking.date,
       timeSlot: booking.timeSlot,
       area: booking.area,

@@ -5,6 +5,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   passwordHash: string;
+  phone?: string; // Nepal format: +977-XXXXXXXXX
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;
@@ -27,6 +28,11 @@ const userSchema = new Schema<IUser>(
     passwordHash: {
       type: String,
       required: [true, 'Password hash is required'],
+    },
+    phone: {
+      type: String,
+      trim: true,
+      match: [/^\+977-[0-9]{9,10}$/, 'Phone number must be in format +977-XXXXXXXXX'],
     },
     role: {
       type: String,

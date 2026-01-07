@@ -3,7 +3,7 @@ import { BOOKING_STATUS, KATHMANDU_AREAS } from '../../../../shared/constants';
 
 export interface IBooking extends Document {
   userId: Types.ObjectId;
-  providerId: Types.ObjectId;
+  providerId?: Types.ObjectId | null; // Optional - booking can be created without provider
   serviceId: Types.ObjectId;
   date: string; // Format: "YYYY-MM-DD"
   timeSlot: string; // Format: "HH:mm"
@@ -23,7 +23,8 @@ const bookingSchema = new Schema<IBooking>(
     providerId: {
       type: Schema.Types.ObjectId,
       ref: 'ProviderProfile',
-      required: [true, 'Provider ID is required'],
+      required: false, // Optional - allow bookings without provider
+      default: null,
     },
     serviceId: {
       type: Schema.Types.ObjectId,
@@ -58,7 +59,8 @@ const bookingSchema = new Schema<IBooking>(
 );
 
 // Unique constraint: prevent double bookings (same provider, date, and time slot)
-bookingSchema.index({ providerId: 1, date: 1, timeSlot: 1 }, { unique: true });
+// Only apply when providerId exists
+bookingSchema.index({ providerId: 1, date: 1, timeSlot: 1 }, { unique: true, sparse: true });
 
 // Indexes for faster queries
 bookingSchema.index({ userId: 1, status: 1 });

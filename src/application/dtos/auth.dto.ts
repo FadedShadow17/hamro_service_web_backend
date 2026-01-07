@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { USER_ROLES } from '../../shared/constants';
 
+// Nepal phone number validation: +977-XXXXXXXXX (9-10 digits)
+const nepalPhoneRegex = /^\+977-[0-9]{9,10}$/;
+
 // Register DTO Schema
 export const registerSchema = z.object({
   name: z
@@ -12,6 +15,10 @@ export const registerSchema = z.object({
     .string()
     .min(6, 'Password must be at least 6 characters')
     .max(100, 'Password must not exceed 100 characters'),
+  phone: z
+    .string()
+    .regex(nepalPhoneRegex, 'Phone number must be in format +977-XXXXXXXXX')
+    .optional(),
   role: z.enum([USER_ROLES.USER, USER_ROLES.PROVIDER], {
     errorMap: () => ({ message: `Role must be either "${USER_ROLES.USER}" or "${USER_ROLES.PROVIDER}"` }),
   }),

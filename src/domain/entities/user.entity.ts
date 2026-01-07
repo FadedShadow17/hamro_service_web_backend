@@ -4,6 +4,7 @@ export interface UserEntity {
   id: string;
   name: string;
   email: string;
+  phone?: string; // Nepal format: +977-XXXXXXXXX
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;

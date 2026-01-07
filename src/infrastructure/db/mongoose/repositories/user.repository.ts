@@ -5,6 +5,7 @@ export interface CreateUserData {
   name: string;
   email: string;
   passwordHash: string;
+  phone?: string; // Nepal format: +977-XXXXXXXXX
   role: UserRole;
 }
 
@@ -30,6 +31,7 @@ export class UserRepository implements IUserRepository {
       name: userData.name.trim(),
       email: userData.email.toLowerCase().trim(),
       passwordHash: userData.passwordHash,
+      phone: userData.phone?.trim(),
       role: userData.role,
     });
 
