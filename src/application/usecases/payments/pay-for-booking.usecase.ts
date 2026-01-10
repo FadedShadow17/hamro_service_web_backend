@@ -22,7 +22,7 @@ export class PayForBookingUseCase {
   async execute(
     bookingId: string,
     userId: string,
-    paymentMethod?: 'COD' | 'ONLINE'
+    paymentMethod?: 'COD' | 'ONLINE' | 'ESEWA' | 'FONEPAY'
   ): Promise<BookingEntity> {
     // Find the booking
     const booking = await this.bookingRepository.findById(bookingId);
