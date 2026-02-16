@@ -38,4 +38,3 @@ export const env: EnvConfig = {
   jwtExpiresIn: getEnv('JWT_EXPIRES_IN', '1d'),
   bcryptSaltRounds: getEnvNumber('BCRYPT_SALT_ROUNDS', 10),
 };
-

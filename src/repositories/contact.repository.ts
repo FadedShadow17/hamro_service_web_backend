@@ -8,7 +8,8 @@ export interface ContactRepository {
     email: string;
     subject: string;
     message: string;
-    category: 'General' | 'Booking' | 'Payments' | 'Technical' | 'Other';
+    category: 'General' | 'Booking' | 'Payments' | 'Technical' | 'Other' | 'Testimonial';
+    rating?: number;
   }): Promise<IContact>;
   
   findByUserId(userId: string): Promise<IContact[]>;
@@ -16,6 +17,8 @@ export interface ContactRepository {
   findById(id: string): Promise<IContact | null>;
   
   findAll(): Promise<IContact[]>;
+  
+  findApprovedTestimonials(limit?: number): Promise<IContact[]>;
   
   updateStatus(id: string, status: 'open' | 'in-progress' | 'resolved' | 'closed', adminReply?: string): Promise<IContact | null>;
 }
@@ -27,7 +30,8 @@ export class ContactRepositoryImpl implements ContactRepository {
     email: string;
     subject: string;
     message: string;
-    category: 'General' | 'Booking' | 'Payments' | 'Technical' | 'Other';
+    category: 'General' | 'Booking' | 'Payments' | 'Technical' | 'Other' | 'Testimonial';
+    rating?: number;
   }): Promise<IContact> {
     const contact = new Contact({
       userId: new Types.ObjectId(data.userId),
@@ -36,6 +40,9 @@ export class ContactRepositoryImpl implements ContactRepository {
       subject: data.subject,
       message: data.message,
       category: data.category,
+      rating: data.rating,
+      // For testimonials, auto-approve by default (can be changed by admin later)
+      approved: data.category === 'Testimonial' ? true : undefined,
     });
     
     return await contact.save();
@@ -55,6 +62,17 @@ export class ContactRepositoryImpl implements ContactRepository {
     return await Contact.find().sort({ createdAt: -1 }).exec();
   }
 
+  async findApprovedTestimonials(limit: number = 10): Promise<IContact[]> {
+    return await Contact.find({
+      category: 'Testimonial',
+      approved: true,
+    })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('userId', 'name email role')
+      .exec();
+  }
+  
   async updateStatus(
     id: string,
     status: 'open' | 'in-progress' | 'resolved' | 'closed',
