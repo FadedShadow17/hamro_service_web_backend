@@ -25,6 +25,7 @@ export class UpdateUserProfileUseCase {
       updateData.phone = dto.phone === '' ? undefined : dto.phone;
     }
     if (dto.profileImageUrl !== undefined) updateData.profileImageUrl = dto.profileImageUrl;
+    if (dto.role !== undefined) updateData.role = dto.role;
 
     // Update user
     const updated = await this.userRepository.updateUser(userId, updateData);

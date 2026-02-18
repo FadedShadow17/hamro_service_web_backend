@@ -13,50 +13,20 @@ import providerVerificationRoutes from './routes/provider-verification.route';
 import { ProviderVerificationController } from './controllers/provider-verification.controller';
 import { requireAuth, requireRole } from './middlewares/auth.middleware';
 import { USER_ROLES } from './config/constants';
+import professionRoutes from './routes/profession.route';
 import serviceProviderRoutes from './routes/service-provider.routes';
 import usersRoutes from './routes/users.route';
 import paymentsRoutes from './routes/payments.route';
+import uploadRoutes from './routes/upload.route';
 import { errorHandler } from './middlewares/error-handler';
 
 const app = express();
 
-// CORS configuration - Allow requests from mobile devices and web
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or Postman)
-    if (!origin) return callback(null, true);
-    
-    // List of allowed origins
-    const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      // Allow any local network IP (for physical devices)
-      /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
-      /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,
-      /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:\d+$/,
-    ];
-    
-    // Check if origin matches any allowed pattern
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (typeof allowed === 'string') {
-        return origin === allowed;
-      } else if (allowed instanceof RegExp) {
-        return allowed.test(origin);
-      }
-      return false;
-    });
-    
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      // For development, allow all origins (remove in production)
-      callback(null, true);
-    }
-  },
+  origin: '*',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -82,9 +52,15 @@ app.get(
   (req, res, next) => verificationController.getVerificationSummary(req, res, next)
 );
 
+app.use('/api/professions', professionRoutes);
 app.use('/api/service-provider', serviceProviderRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/upload', uploadRoutes);
+
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', service: 'hamro-service-backend' });
+});
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Server is running' });

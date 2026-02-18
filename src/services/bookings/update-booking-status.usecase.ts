@@ -236,6 +236,29 @@ export class UpdateBookingStatusUseCase {
     
     // For CONFIRMED status (ACCEPT), also assign providerId if booking is unassigned
     if (status === 'CONFIRMED' && isProvider && !booking.providerId && userId) {
+      // Check if provider already has a booking at the same date and timeSlot
+      const existingBooking = await this.bookingRepository.findByProviderDateAndTime(
+        userId,
+        booking.date,
+        booking.timeSlot
+      );
+      
+      if (existingBooking && existingBooking.id !== bookingId) {
+        console.warn('[Booking Accept] Provider already has a booking at this time:', {
+          bookingId,
+          providerId: userId,
+          date: booking.date,
+          timeSlot: booking.timeSlot,
+          existingBookingId: existingBooking.id,
+        });
+        throw new HttpError(
+          409,
+          `You already have a booking on ${booking.date} at ${booking.timeSlot}. Please choose a different time slot.`,
+          undefined,
+          'DUPLICATE_BOOKING_TIME'
+        );
+      }
+      
       // Convert userId (ProviderProfile._id string) to ObjectId for storage
       updateData.providerId = new mongoose.Types.ObjectId(userId);
       console.info('[Booking Accept] Assigning provider and confirming booking:', {
@@ -243,6 +266,8 @@ export class UpdateBookingStatusUseCase {
         providerId: userId,
         fromStatus,
         toStatus,
+        date: booking.date,
+        timeSlot: booking.timeSlot,
       });
     }
     
