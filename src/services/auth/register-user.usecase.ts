@@ -19,19 +19,16 @@ export class RegisterUserUseCase {
   }
 
   async execute(dto: RegisterDTO): Promise<RegisterResponse> {
-    // Check if email already exists
+
     const existingUser = await this.userRepository.findByEmail(dto.email);
     if (existingUser) {
       throw new HttpError(409, 'Email already exists');
     }
 
-    // Hash password
     const passwordHash = await hashPassword(dto.password);
 
-    // Default role to USER if not provided
     const role = dto.role || USER_ROLES.USER;
 
-    // Create user via repository
     const user = await this.userRepository.createUser({
       name: dto.name,
       email: dto.email,
@@ -40,17 +37,14 @@ export class RegisterUserUseCase {
       role: role,
     });
 
-    // Normalize role: convert 'service provider' to 'provider' for backward compatibility
     const normalizedRole = (user.role as string) === 'service provider' ? 'provider' : user.role;
 
-    // Generate JWT token
     const token = signToken({
       id: user._id.toString(),
       email: user.email,
       role: normalizedRole,
     });
 
-    // Return token + user info (matching Flutter app expectations)
     return {
       token,
       user: {

@@ -20,10 +20,7 @@ const updateAvailabilitySchema = z.array(
 );
 
 export class AvailabilityController {
-  /**
-   * Get provider's availability
-   * GET /api/provider/availability
-   */
+  
   async get(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -31,7 +28,6 @@ export class AvailabilityController {
         return;
       }
 
-      // Get provider profile for this user
       const providerProfileRepo = new ProviderProfileRepository();
       const profile = await providerProfileRepo.findByUserId(req.user.id);
       if (!profile) {
@@ -46,10 +42,7 @@ export class AvailabilityController {
     }
   }
 
-  /**
-   * Update provider's availability
-   * PUT /api/provider/availability
-   */
+  
   async update(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -57,7 +50,6 @@ export class AvailabilityController {
         return;
       }
 
-      // Get provider profile for this user
       const providerProfileRepo = new ProviderProfileRepository();
       const profile = await providerProfileRepo.findByUserId(req.user.id);
       if (!profile) {

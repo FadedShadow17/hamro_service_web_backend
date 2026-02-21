@@ -8,7 +8,7 @@ describe('Contact Repository Unit Tests', () => {
   let testContactId: string;
 
   beforeAll(async () => {
-    // Create test user
+
     const testUser = await UserModel.create({
       name: 'Contact Repo Test',
       email: 'contactrepo@example.com',
@@ -51,7 +51,7 @@ describe('Contact Repository Unit Tests', () => {
 
   describe('findApprovedTestimonials', () => {
     test('should find approved testimonials', async () => {
-      // Create a testimonial
+
       await repository.create({
         userId: testUserId,
         name: 'Test User',

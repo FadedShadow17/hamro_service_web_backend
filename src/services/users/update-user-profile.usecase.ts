@@ -17,23 +17,20 @@ export class UpdateUserProfileUseCase {
       throw new HttpError(404, 'User not found', undefined, 'USER_NOT_FOUND');
     }
 
-    // Prepare update data
     const updateData: any = {};
     if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.phone !== undefined) {
-      // Handle empty string as null/undefined
+
       updateData.phone = dto.phone === '' ? undefined : dto.phone;
     }
     if (dto.profileImageUrl !== undefined) updateData.profileImageUrl = dto.profileImageUrl;
     if (dto.role !== undefined) updateData.role = dto.role;
 
-    // Update user
     const updated = await this.userRepository.updateUser(userId, updateData);
     if (!updated) {
       throw new HttpError(500, 'Failed to update user profile', undefined, 'UPDATE_FAILED');
     }
 
-    // Normalize role: convert 'service provider' to 'provider' for backward compatibility
     const normalizedRole = (updated.role as string) === 'service provider' ? 'provider' : updated.role;
 
     return {

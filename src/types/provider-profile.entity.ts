@@ -8,7 +8,7 @@ export interface ProviderProfileEntity {
   phone?: string;
   bio?: string;
   active: boolean;
-  // Verification fields
+
   verificationStatus: VerificationStatus;
   fullName?: string;
   phoneNumber?: string;

@@ -1,10 +1,8 @@
 import { z } from 'zod';
 import { USER_ROLES } from '../config/constants';
 
-// Nepal phone number validation: +977-XXXXXXXXX (9-10 digits)
 const nepalPhoneRegex = /^\+977-[0-9]{9,10}$/;
 
-// Register DTO Schema
 export const registerSchema = z.object({
   name: z
     .string()
@@ -28,14 +26,13 @@ export const registerSchema = z.object({
     errorMap: () => ({ message: `Role must be either "${USER_ROLES.USER}" or "${USER_ROLES.PROVIDER}"` }),
   }).optional(),
 }).transform((data) => {
-  // Transform phoneNumber to phone if provided
+
   return {
     ...data,
     phone: data.phone || data.phoneNumber,
   };
 });
 
-// Login DTO Schema
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z
@@ -44,6 +41,5 @@ export const loginSchema = z.object({
     .max(100, 'Password must not exceed 100 characters'),
 });
 
-// TypeScript types inferred from schemas
 export type RegisterDTO = z.infer<typeof registerSchema>;
 export type LoginDTO = z.infer<typeof loginSchema>;

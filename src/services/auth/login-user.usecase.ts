@@ -18,29 +18,25 @@ export class LoginUserUseCase {
   }
 
   async execute(dto: LoginDTO): Promise<LoginResponse> {
-    // Find user by email
+
     const user = await this.userRepository.findByEmail(dto.email);
     if (!user) {
       throw new HttpError(401, 'Invalid email or password');
     }
 
-    // Compare password hash
     const isPasswordValid = await comparePassword(dto.password, user.passwordHash);
     if (!isPasswordValid) {
       throw new HttpError(401, 'Invalid email or password');
     }
 
-    // Normalize role: convert 'service provider' to 'provider' for backward compatibility
     const normalizedRole = (user.role as string) === 'service provider' ? 'provider' : user.role;
 
-    // Generate JWT token
     const token = signToken({
       id: user._id.toString(),
       email: user.email,
       role: normalizedRole,
     });
 
-    // Return token + user info (matching Flutter app expectations)
     return {
       token,
       user: {

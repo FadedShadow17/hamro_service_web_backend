@@ -21,42 +21,89 @@ export class GetProviderBookingsUseCase {
     this.serviceRepository = serviceRepository || new ServiceRepository();
   }
 
-  /**
-   * Get bookings for a provider with category filtering
-   * Returns:
-   * - All PENDING bookings with providerId = null where category matches (available to claim)
-   * - All bookings where providerId = providerId (already claimed/accepted by this provider)
-   */
+  
   async execute(providerId: string, status?: BookingStatus): Promise<BookingEntity[]> {
-    // Get all bookings (unassigned + assigned to this provider)
-    const allBookings = await this.bookingRepository.findAvailableAndAssignedBookings(providerId, status);
+    console.log('[GetProviderBookings] Starting execution:', { providerId, status });
 
-    // Get provider profile to check verified role for category filtering
+    const allBookings = await this.bookingRepository.findAvailableAndAssignedBookings(providerId, status);
+    console.log('[GetProviderBookings] Found bookings from repository:', {
+      total: allBookings.length,
+      bookingIds: allBookings.map(b => b.id),
+      unassigned: allBookings.filter(b => !b.providerId).length,
+      assigned: allBookings.filter(b => b.providerId === providerId).length,
+    });
+
     const providerProfile = await this.providerProfileRepository.findById(providerId);
     if (!providerProfile) {
-      // If no profile, return only assigned bookings
+      console.warn('[GetProviderBookings] Provider profile not found:', { providerId });
       return allBookings.filter(b => b.providerId === providerId);
     }
 
-    // Filter bookings by visibility rules
+    console.log('[GetProviderBookings] Provider profile:', {
+      providerId,
+      serviceRole: providerProfile.serviceRole,
+      hasServiceRole: !!providerProfile.serviceRole,
+    });
+
     const visibleBookings: BookingEntity[] = [];
     
     for (const booking of allBookings) {
-      // If booking is assigned to this provider, always include
+      console.log('[GetProviderBookings] Processing booking:', {
+        bookingId: booking.id,
+        hasProviderId: !!booking.providerId,
+        providerId: booking.providerId,
+        hasService: !!booking.service,
+        serviceName: booking.service?.name,
+        serviceId: booking.serviceId,
+        status: booking.status,
+      });
+
       if (booking.providerId && booking.providerId === providerId) {
+        console.log('[GetProviderBookings] Adding assigned booking:', { bookingId: booking.id });
         visibleBookings.push(booking);
       } 
-      // If booking is unassigned (providerId = null), check category match
-      else if (!booking.providerId && booking.service) {
-        // Only show if provider's verified role matches service category
-        if (providerProfile.serviceRole) {
-          const categoryMatches = isCategoryMatch(providerProfile.serviceRole, booking.service.name);
-          if (categoryMatches) {
+
+      else if (!booking.providerId) {
+        if (booking.service && booking.service.name) {
+          if (providerProfile.serviceRole) {
+            const categoryMatches = isCategoryMatch(providerProfile.serviceRole, booking.service.name);
+            console.log('[GetProviderBookings] Category match check:', {
+              bookingId: booking.id,
+              serviceName: booking.service.name,
+              providerRole: providerProfile.serviceRole,
+              categoryMatches,
+            });
+            if (categoryMatches) {
+              console.log('[GetProviderBookings] Adding unassigned booking (category match):', { bookingId: booking.id });
+              visibleBookings.push(booking);
+            } else {
+              console.info('[GetProviderBookings] Category mismatch - booking filtered out:', {
+                bookingId: booking.id,
+                serviceName: booking.service.name,
+                providerRole: providerProfile.serviceRole,
+                providerId,
+              });
+            }
+          } else {
+            console.log('[GetProviderBookings] Adding unassigned booking (no serviceRole):', { bookingId: booking.id });
             visibleBookings.push(booking);
           }
+        } else {
+          console.warn('[GetProviderBookings] Unassigned booking without service populated:', {
+            bookingId: booking.id,
+            serviceId: booking.serviceId,
+            hasService: !!booking.service,
+            serviceObject: booking.service,
+          });
+          visibleBookings.push(booking);
         }
       }
     }
+
+    console.log('[GetProviderBookings] Final visible bookings:', {
+      total: visibleBookings.length,
+      bookingIds: visibleBookings.map(b => b.id),
+    });
 
     return visibleBookings;
   }

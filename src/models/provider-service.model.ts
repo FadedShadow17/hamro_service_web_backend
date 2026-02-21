@@ -36,7 +36,6 @@ const providerServiceSchema = new Schema<IProviderService>(
   }
 );
 
-// Unique constraint: one provider can only have one active service offering per service
 providerServiceSchema.index({ providerId: 1, serviceId: 1 }, { unique: true });
 providerServiceSchema.index({ serviceId: 1, active: 1 });
 

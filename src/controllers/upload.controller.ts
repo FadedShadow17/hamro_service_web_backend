@@ -2,10 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { getFileUrl } from '../services/upload.service';
 
 export class UploadController {
-  /**
-   * Upload a single image
-   * POST /api/upload/image
-   */
+  
   async uploadImage(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.file) {

@@ -1,4 +1,4 @@
-/// <reference path="../../../jest.d.ts" />
+
 import request from 'supertest';
 import app from '../../app';
 import { User } from '../../models/user.model';
@@ -12,12 +12,12 @@ describe('Authentication Integration Tests', () => {
   };
 
   beforeAll(async () => {
-    // Clean up test user if exists
+
     await User.deleteOne({ email: testUser.email });
   });
 
   afterAll(async () => {
-    // Clean up test user after tests
+
     await User.deleteOne({ email: testUser.email });
   });
 

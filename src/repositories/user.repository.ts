@@ -17,16 +17,12 @@ export interface IUserRepository {
 }
 
 export class UserRepository implements IUserRepository {
-  /**
-   * Find user by email
-   */
+  
   async findByEmail(email: string): Promise<IUser | null> {
     return await User.findOne({ email: email.toLowerCase().trim() });
   }
 
-  /**
-   * Create a new user
-   */
+  
   async createUser(userData: CreateUserData): Promise<IUser> {
     const user = new User({
       name: userData.name.trim(),
@@ -39,16 +35,12 @@ export class UserRepository implements IUserRepository {
     return await user.save();
   }
 
-  /**
-   * Find user by ID
-   */
+  
   async findById(id: string): Promise<IUser | null> {
     return await User.findById(id);
   }
 
-  /**
-   * Update user
-   */
+  
   async updateUser(id: string, userData: Partial<Omit<CreateUserData, 'passwordHash'> & { profileImageUrl?: string }>): Promise<IUser | null> {
     const updateData: any = {};
     if (userData.name !== undefined) updateData.name = userData.name.trim();

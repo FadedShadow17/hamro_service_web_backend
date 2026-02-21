@@ -11,31 +11,22 @@ export class PayForBookingUseCase {
     this.bookingRepository = bookingRepository || new BookingRepository();
   }
 
-  /**
-   * Mark a booking as paid
-   * Validates:
-   * - Booking exists
-   * - Booking belongs to the user
-   * - Booking status is CONFIRMED
-   * - Booking is not already paid
-   */
+  
   async execute(
     bookingId: string,
     userId: string,
     paymentMethod?: 'COD' | 'ONLINE' | 'ESEWA' | 'FONEPAY'
   ): Promise<BookingEntity> {
-    // Find the booking
+
     const booking = await this.bookingRepository.findById(bookingId);
     if (!booking) {
       throw new HttpError(404, 'Booking not found', undefined, 'BOOKING_NOT_FOUND');
     }
 
-    // Verify booking belongs to the user
     if (String(booking.userId) !== String(userId)) {
       throw new HttpError(403, 'This booking does not belong to you', undefined, 'UNAUTHORIZED_USER');
     }
 
-    // Verify booking status is CONFIRMED
     if (booking.status !== BOOKING_STATUS.CONFIRMED) {
       throw new HttpError(
         400,
@@ -45,13 +36,11 @@ export class PayForBookingUseCase {
       );
     }
 
-    // Check if already paid
     if (booking.paymentStatus === 'PAID') {
       throw new HttpError(400, 'Booking is already paid', undefined, 'ALREADY_PAID');
     }
 
-    // Update booking with payment information
-    // Map payment method to allowed values
+
     const allowedPaymentMethod = paymentMethod === 'ESEWA' || paymentMethod === 'FONEPAY' 
       ? 'ONLINE' 
       : (paymentMethod || 'COD');

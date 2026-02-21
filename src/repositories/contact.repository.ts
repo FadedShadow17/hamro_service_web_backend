@@ -41,7 +41,7 @@ export class ContactRepositoryImpl implements ContactRepository {
       message: data.message,
       category: data.category,
       rating: data.rating,
-      // For testimonials, auto-approve by default (can be changed by admin later)
+
       approved: data.category === 'Testimonial' ? true : undefined,
     });
     

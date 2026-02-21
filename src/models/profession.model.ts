@@ -32,8 +32,7 @@ const professionSchema = new Schema<IProfession>(
   }
 );
 
-// Index for faster queries
-professionSchema.index({ name: 1 });
+
 professionSchema.index({ active: 1 });
 
 export const Profession = mongoose.model<IProfession>('Profession', professionSchema);

@@ -5,14 +5,11 @@ import { GetAvailableProvidersUseCase } from '../services/services/get-available
 import { ListCategoriesUseCase } from '../services/services/list-categories.usecase';
 
 export class ServicesController {
-  /**
-   * List all services
-   * GET /api/services
-   */
+  
   async list(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const useCase = new ListServicesUseCase();
-      // Always return only active services for this endpoint
+
       const services = await useCase.execute(true);
       res.status(200).json({ 
         success: true,
@@ -23,10 +20,7 @@ export class ServicesController {
     }
   }
 
-  /**
-   * Get service by ID
-   * GET /api/services/:id
-   */
+  
   async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
@@ -38,10 +32,7 @@ export class ServicesController {
     }
   }
 
-  /**
-   * Get available providers for a service
-   * GET /api/services/:id/providers?date=YYYY-MM-DD&area=AREA
-   */
+  
   async getAvailableProviders(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
@@ -65,10 +56,7 @@ export class ServicesController {
     }
   }
 
-  /**
-   * List all service categories
-   * GET /api/service-categories
-   */
+  
   async listCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const active = req.query.active === 'true' ? true : req.query.active === 'false' ? false : undefined;

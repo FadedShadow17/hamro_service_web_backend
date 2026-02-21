@@ -1,4 +1,4 @@
-/// <reference path="../../../jest.d.ts" />
+
 import request from 'supertest';
 import app from '../../app';
 
@@ -17,7 +17,7 @@ describe('Services Integration Tests', () => {
 
   describe('GET /api/services/:id', () => {
     test('should get service by ID', async () => {
-      // First get all services to get a valid ID
+
       const servicesResponse = await request(app)
         .get('/api/services');
       
@@ -34,15 +34,14 @@ describe('Services Integration Tests', () => {
     test('should return error for invalid service ID', async () => {
       const response = await request(app)
         .get('/api/services/invalid-id-123');
-      
-      // Could be 404 or 400 depending on implementation
+
       expect([400, 404]).toContain(response.status);
     });
   });
 
   describe('GET /api/services/:id/providers', () => {
     test('should get available providers', async () => {
-      // First get all services to get a valid ID
+
       const servicesResponse = await request(app)
         .get('/api/services');
       

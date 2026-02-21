@@ -6,10 +6,7 @@ import { payForBookingSchema } from '../dtos/payment.dto';
 import { USER_ROLES } from '../config/constants';
 
 export class PaymentsController {
-  /**
-   * Get user's payable bookings (CONFIRMED status only)
-   * GET /api/payments/me
-   */
+  
   async getMyPayableBookings(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -31,10 +28,7 @@ export class PaymentsController {
     }
   }
 
-  /**
-   * Pay for a booking
-   * POST /api/payments/:bookingId/pay
-   */
+  
   async payForBooking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {

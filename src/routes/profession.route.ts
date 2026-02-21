@@ -4,7 +4,6 @@ import { ProfessionController } from '../controllers/profession.controller';
 const router = Router();
 const professionController = new ProfessionController();
 
-// GET /api/professions - Get all active professions
 router.get('/', (req, res, next) => professionController.getAllProfessions(req, res, next));
 
 export default router;

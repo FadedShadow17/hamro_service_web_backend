@@ -4,10 +4,7 @@ import { VERIFICATION_STATUS } from '../config/constants';
 import { AuthRequest } from './auth.middleware';
 import { HttpError } from '../errors/http-error';
 
-/**
- * Middleware to check if provider is verified
- * Blocks unverified providers from accepting/confirming bookings
- */
+
 export async function requireVerification(
   req: AuthRequest,
   res: Response,

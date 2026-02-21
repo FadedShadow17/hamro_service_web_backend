@@ -39,17 +39,14 @@ export class ContactService {
     this.userRepository = new UserRepository();
   }
 
-  /**
-   * Create a new contact message
-   */
+  
   async createContact(userId: string, dto: CreateContactDTO): Promise<ContactResponse> {
-    // Get user info
+
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new HttpError(404, 'User not found');
     }
 
-    // Create contact message
     const contact = await this.contactRepository.create({
       userId,
       name: user.name,
@@ -63,53 +60,44 @@ export class ContactService {
     return this.mapToResponse(contact);
   }
 
-  /**
-   * Get all contact messages for a user
-   */
+  
   async getMyContacts(userId: string): Promise<ContactResponse[]> {
     const contacts = await this.contactRepository.findByUserId(userId);
     return contacts.map(this.mapToResponse);
   }
 
-  /**
-   * Get all contact messages (admin only)
-   */
+  
   async getAllContacts(): Promise<ContactResponse[]> {
     const contacts = await this.contactRepository.findAll();
     return contacts.map(this.mapToResponse);
   }
 
-  /**
-   * Get approved testimonials for public display
-   */
+  
   async getApprovedTestimonials(limit: number = 10): Promise<TestimonialResponse[]> {
     const contacts = await this.contactRepository.findApprovedTestimonials(limit);
     
     const testimonials: TestimonialResponse[] = [];
     
     for (const contact of contacts) {
-      // Get user info to determine role (userId is populated in repository)
+
       let userRole = 'Customer';
       let user: any = null;
-      
-      // Check if userId is populated (object) or just ID (string)
+
       if (contact.userId && typeof contact.userId === 'object' && 'role' in contact.userId) {
         user = contact.userId;
       } else {
         try {
           user = await this.userRepository.findById(contact.userId.toString());
         } catch (err) {
-          // If user lookup fails, continue with default
+
           console.warn('Failed to get user info for testimonial:', err);
         }
       }
 
-      // Set role based on user role or default to Customer
       if (user && user.role) {
         userRole = user.role === 'provider' ? 'Service Provider' : 'Customer';
       }
 
-      // Extract rating from rating field or subject
       let rating = contact.rating || 5;
       if (!contact.rating && contact.subject.includes('Star')) {
         const match = contact.subject.match(/(\d+)\s*Star/i);
@@ -118,7 +106,6 @@ export class ContactService {
         }
       }
 
-      // Try to extract service name from message, otherwise use default
       let service: string | undefined = 'Website Experience';
       const serviceMatches = [
         contact.message.match(/service[:\s]+([^.\n,]+)/i),
@@ -147,9 +134,7 @@ export class ContactService {
     return testimonials;
   }
 
-  /**
-   * Map IContact to ContactResponse
-   */
+  
   private mapToResponse(contact: IContact): ContactResponse {
     return {
       id: contact._id.toString(),

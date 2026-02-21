@@ -1,4 +1,4 @@
-/// <reference path="../../../jest.d.ts" />
+
 import request from 'supertest';
 import app from '../../app';
 import { User } from '../../models/user.model';
@@ -11,7 +11,7 @@ describe('Bookings Integration Tests', () => {
   let serviceId: string;
 
   beforeAll(async () => {
-    // Create test user
+
     const testUser = {
       name: 'Booking Test User',
       email: 'bookingtest@example.com',
@@ -28,7 +28,6 @@ describe('Bookings Integration Tests', () => {
     authToken = registerResponse.body.token;
     userId = registerResponse.body.user.id;
 
-    // Get a service ID
     const servicesResponse = await request(app)
       .get('/api/services');
     
@@ -109,7 +108,7 @@ describe('Bookings Integration Tests', () => {
 
   describe('PATCH /api/bookings/:id/cancel', () => {
     test('should update booking status', async () => {
-      // First create a booking
+
       if (!serviceId) {
         return;
       }

@@ -21,7 +21,6 @@ const contactSchema = new Schema<IContact>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'User ID is required'],
-      index: true,
     },
     name: {
       type: String,
@@ -75,7 +74,6 @@ const contactSchema = new Schema<IContact>(
   }
 );
 
-// Index for efficient queries
 contactSchema.index({ userId: 1, createdAt: -1 });
 contactSchema.index({ status: 1 });
 contactSchema.index({ category: 1, approved: 1 }); // For testimonials query

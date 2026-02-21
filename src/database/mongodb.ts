@@ -35,7 +35,6 @@ export async function disconnectMongoDB(): Promise<void> {
   }
 }
 
-// Handle connection events
 mongoose.connection.on('error', (error) => {
   console.error('MongoDB connection error:', error);
   isConnected = false;

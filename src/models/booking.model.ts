@@ -75,11 +75,9 @@ const bookingSchema = new Schema<IBooking>(
   }
 );
 
-// Unique constraint: prevent double bookings (same provider, date, and time slot)
-// Only apply when providerId exists
+
 bookingSchema.index({ providerId: 1, date: 1, timeSlot: 1 }, { unique: true, sparse: true });
 
-// Indexes for faster queries
 bookingSchema.index({ userId: 1, status: 1 });
 bookingSchema.index({ providerId: 1, status: 1 });
 bookingSchema.index({ date: 1, status: 1 });

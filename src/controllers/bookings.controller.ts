@@ -4,17 +4,15 @@ import { GetUserBookingsUseCase } from '../services/bookings/get-user-bookings.u
 import { GetProviderBookingsUseCase } from '../services/bookings/get-provider-bookings.usecase';
 import { GetProviderDashboardSummaryUseCase } from '../services/bookings/get-provider-dashboard-summary.usecase';
 import { UpdateBookingStatusUseCase } from '../services/bookings/update-booking-status.usecase';
-import { createBookingSchema, updateBookingStatusSchema } from '../dtos/booking.dto';
+import { createBookingSchema, updateBookingStatusSchema, updateBookingSchema } from '../dtos/booking.dto';
 import { IProviderProfileRepository } from '../types/repositories.port';
 import { ProviderProfileRepository } from '../repositories/provider-profile.repository';
+import { BookingRepository } from '../repositories/booking.repository';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { BOOKING_STATUS, USER_ROLES } from '../config/constants';
 
 export class BookingsController {
-  /**
-   * Create a new booking
-   * POST /api/bookings
-   */
+  
   async create(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -40,10 +38,7 @@ export class BookingsController {
     }
   }
 
-  /**
-   * Get user's bookings
-   * GET /api/bookings/my
-   */
+  
   async getMyBookings(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -66,10 +61,7 @@ export class BookingsController {
     }
   }
 
-  /**
-   * Get provider's bookings
-   * GET /api/provider/bookings
-   */
+  
   async getProviderBookings(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -77,7 +69,6 @@ export class BookingsController {
         return;
       }
 
-      // Get provider profile for this user
       const providerProfileRepo = new ProviderProfileRepository();
       const profile = await providerProfileRepo.findByUserId(req.user.id);
       if (!profile) {
@@ -86,7 +77,7 @@ export class BookingsController {
       }
 
       const status = req.query.status as string | undefined;
-      // Normalize status: "ALL" means no filter
+
       const normalizedStatus = status && status !== 'ALL' ? (status as any) : undefined;
       const useCase = new GetProviderBookingsUseCase();
       const bookings = await useCase.execute(profile.id, normalizedStatus);
@@ -97,10 +88,7 @@ export class BookingsController {
     }
   }
 
-  /**
-   * Accept booking (provider)
-   * PATCH /api/provider/bookings/:id/accept
-   */
+  
   async acceptBooking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -109,8 +97,7 @@ export class BookingsController {
       }
 
       const { id } = req.params;
-      
-      // DEBUG: Log request details
+
       console.info('[ACCEPT BOOKING REQUEST]', {
         bookingId: id,
         reqUserId: req.user.id,
@@ -126,7 +113,6 @@ export class BookingsController {
         return;
       }
 
-      // DEBUG: Log profile details
       console.info('[ACCEPT BOOKING] Provider profile found:', {
         profileId: profile.id,
         profileUserId: profile.userId,
@@ -146,10 +132,7 @@ export class BookingsController {
     }
   }
 
-  /**
-   * Decline booking (provider)
-   * PATCH /api/provider/bookings/:id/decline
-   */
+  
   async declineBooking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -177,10 +160,7 @@ export class BookingsController {
     }
   }
 
-  /**
-   * Complete booking (provider)
-   * PATCH /api/provider/bookings/:id/complete
-   */
+  
   async completeBooking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -208,10 +188,7 @@ export class BookingsController {
     }
   }
 
-  /**
-   * Cancel booking (user)
-   * PATCH /api/bookings/:id/cancel
-   */
+  
   async cancelBooking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -221,8 +198,7 @@ export class BookingsController {
 
       const { id } = req.params;
       const reqUserId = req.user.id; // Always use req.user.id (string) from auth middleware
-      
-      // Log before ownership check for debugging
+
       console.info('[USER CANCEL]', {
         bookingId: id,
         reqUserId: reqUserId,
@@ -241,10 +217,7 @@ export class BookingsController {
     }
   }
 
-  /**
-   * Cancel booking (provider)
-   * PATCH /api/provider/bookings/:id/cancel
-   */
+  
   async cancelProviderBooking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -272,10 +245,65 @@ export class BookingsController {
     }
   }
 
-  /**
-   * Update booking status (provider) - Unified endpoint
-   * PATCH /api/provider/bookings/:id/status
-   */
+  
+  async updateBooking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+
+      if (req.user.role !== USER_ROLES.USER) {
+        res.status(403).json({ message: 'Only users can update bookings' });
+        return;
+      }
+
+      const { id } = req.params;
+      const dto = updateBookingSchema.parse(req.body);
+
+      const bookingRepository = new BookingRepository();
+      const booking = await bookingRepository.findById(id);
+      
+      if (!booking) {
+        res.status(404).json({ message: 'Booking not found' });
+        return;
+      }
+
+      if (booking.userId !== req.user.id) {
+        res.status(403).json({ message: 'You can only update your own bookings' });
+        return;
+      }
+
+      if (booking.status !== BOOKING_STATUS.PENDING) {
+        res.status(400).json({ 
+          message: 'You can only update pending bookings',
+          code: 'INVALID_STATUS'
+        });
+        return;
+      }
+
+      const updateData: Partial<{ date: string; timeSlot: string; area: string }> = {};
+      if (dto.date) updateData.date = dto.date;
+      if (dto.timeSlot) updateData.timeSlot = dto.timeSlot;
+      if (dto.area) updateData.area = dto.area;
+
+      const updatedBooking = await bookingRepository.update(id, updateData);
+      
+      if (!updatedBooking) {
+        res.status(500).json({ message: 'Failed to update booking' });
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Booking updated successfully',
+        booking: updatedBooking,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  
   async updateBookingStatus(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -286,7 +314,6 @@ export class BookingsController {
       const { id } = req.params;
       const dto = updateBookingStatusSchema.parse(req.body);
 
-      // DEBUG: Log request details
       console.info('[UPDATE BOOKING STATUS REQUEST]', {
         bookingId: id,
         newStatus: dto.status,
@@ -295,7 +322,6 @@ export class BookingsController {
         reqUserRole: req.user.role,
       });
 
-      // Get provider profile for this user
       const providerProfileRepo = new ProviderProfileRepository();
       const profile = await providerProfileRepo.findByUserId(req.user.id);
       if (!profile) {
@@ -304,7 +330,6 @@ export class BookingsController {
         return;
       }
 
-      // DEBUG: Log profile details
       console.info('[UPDATE BOOKING STATUS] Provider profile found:', {
         profileId: profile.id,
         profileUserId: profile.userId,
@@ -335,10 +360,7 @@ export class BookingsController {
     }
   }
 
-  /**
-   * Get provider dashboard summary
-   * GET /api/provider/dashboard/summary
-   */
+  
   async getProviderDashboardSummary(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -346,7 +368,6 @@ export class BookingsController {
         return;
       }
 
-      // Get provider profile for this user
       const providerProfileRepo = new ProviderProfileRepository();
       const profile = await providerProfileRepo.findByUserId(req.user.id);
       if (!profile) {

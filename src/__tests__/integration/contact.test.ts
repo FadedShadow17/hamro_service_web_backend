@@ -1,4 +1,4 @@
-/// <reference path="../../../jest.d.ts" />
+
 import request from 'supertest';
 import app from '../../app';
 import { User } from '../../models/user.model';
@@ -9,7 +9,7 @@ describe('Contact Integration Tests', () => {
   let userId: string;
 
   beforeAll(async () => {
-    // Create test user and get token
+
     const testUser = {
       name: 'Contact Test User',
       email: 'contacttest@example.com',

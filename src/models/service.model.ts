@@ -49,8 +49,7 @@ const serviceSchema = new Schema<IService>(
   }
 );
 
-// Index for faster queries
-serviceSchema.index({ slug: 1 });
+
 serviceSchema.index({ isActive: 1 });
 
 export const Service = mongoose.model<IService>('Service', serviceSchema);

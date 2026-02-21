@@ -7,7 +7,6 @@ import { USER_ROLES } from '../config/constants';
 
 export class ServiceProviderController {
 
-    // GET /api/service-provider/users
     async getUsers(req: Request, res: Response, next: NextFunction) {
         try {
             const users = await User.find({ role: USER_ROLES.USER }).select('-passwordHash').sort({ createdAt: -1 });
@@ -17,7 +16,6 @@ export class ServiceProviderController {
         }
     }
 
-    // GET /api/service-provider/users/:id
     async getUser(req: Request, res: Response, next: NextFunction) {
         try {
             const user = await User.findById(req.params.id).select('-passwordHash');
@@ -30,7 +28,6 @@ export class ServiceProviderController {
         }
     }
 
-    // POST /api/service-provider/users
     async createUser(req: Request, res: Response, next: NextFunction) {
         try {
             const { name, email, password, phone } = req.body;
@@ -61,7 +58,7 @@ export class ServiceProviderController {
             const user = await User.create(userData);
 
             const userResponse = user.toObject();
-            // @ts-ignore
+
             delete userResponse.passwordHash;
 
             res.status(201).json({ user: userResponse });
@@ -70,12 +67,10 @@ export class ServiceProviderController {
         }
     }
 
-    // PUT /api/service-provider/users/:id
     async updateUser(req: Request, res: Response, next: NextFunction) {
         try {
             const updates: any = { ...req.body };
 
-            // Remove sensitive fields
             delete updates.password;
             delete updates.passwordHash; // Ensure raw hash update isn't allowed directly
 
@@ -95,7 +90,6 @@ export class ServiceProviderController {
         }
     }
 
-    // DELETE /api/service-provider/users/:id
     async deleteUser(req: Request, res: Response, next: NextFunction) {
         try {
             const user = await User.findByIdAndDelete(req.params.id);

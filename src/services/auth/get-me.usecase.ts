@@ -16,10 +16,8 @@ export class GetMeUseCase {
       throw new HttpError(404, 'User not found');
     }
 
-    // Normalize role: convert 'service provider' to 'provider' for backward compatibility
     const normalizedRole = (user.role as string) === 'service provider' ? 'provider' : user.role;
 
-    // Return user info (matching Flutter app expectations)
     return {
       _id: user._id.toString(),
       id: user._id.toString(),

@@ -6,14 +6,12 @@ import { AvailabilityEntity, TimeSlot } from './availability.entity';
 import { BookingEntity } from './booking.entity';
 import { BookingStatus } from '../config/constants';
 
-// ServiceCategory Repository
 export interface IServiceCategoryRepository {
   findAll(active?: boolean): Promise<ServiceCategoryEntity[]>;
   findById(id: string): Promise<ServiceCategoryEntity | null>;
   create(data: Omit<ServiceCategoryEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceCategoryEntity>;
 }
 
-// Service Repository
 export interface IServiceRepository {
   findAll(active?: boolean): Promise<ServiceEntity[]>;
   findById(id: string): Promise<ServiceEntity | null>;
@@ -22,7 +20,6 @@ export interface IServiceRepository {
   create(data: Omit<ServiceEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceEntity>;
 }
 
-// ProviderProfile Repository
 export interface IProviderProfileRepository {
   findByUserId(userId: string): Promise<ProviderProfileEntity | null>;
   findById(id: string): Promise<ProviderProfileEntity | null>;
@@ -32,7 +29,6 @@ export interface IProviderProfileRepository {
   update(id: string, data: Partial<Omit<ProviderProfileEntity, 'id' | 'createdAt' | 'updatedAt'>>): Promise<ProviderProfileEntity | null>;
 }
 
-// ProviderService Repository
 export interface IProviderServiceRepository {
   findByProviderId(providerId: string, active?: boolean): Promise<ProviderServiceEntity[]>;
   findByServiceId(serviceId: string, active?: boolean): Promise<ProviderServiceEntity[]>;
@@ -40,7 +36,6 @@ export interface IProviderServiceRepository {
   create(data: Omit<ProviderServiceEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProviderServiceEntity>;
 }
 
-// Availability Repository
 export interface IAvailabilityRepository {
   findByProviderId(providerId: string): Promise<AvailabilityEntity[]>;
   findByProviderAndDay(providerId: string, dayOfWeek: number): Promise<AvailabilityEntity | null>;
@@ -49,7 +44,6 @@ export interface IAvailabilityRepository {
   upsertByProviderAndDay(providerId: string, dayOfWeek: number, timeSlots: TimeSlot[]): Promise<AvailabilityEntity>;
 }
 
-// Booking Repository
 export interface IBookingRepository {
   findById(id: string): Promise<BookingEntity | null>;
   findByUserId(userId: string, status?: BookingStatus): Promise<BookingEntity[]>;

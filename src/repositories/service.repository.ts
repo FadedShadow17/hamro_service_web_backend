@@ -20,7 +20,7 @@ export class ServiceRepository implements IServiceRepository {
   }
 
   async findByCategoryId(categoryId: string, active?: boolean): Promise<ServiceEntity[]> {
-    // Deprecated: Services no longer have categories, return empty array
+
     return [];
   }
 

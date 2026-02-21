@@ -6,10 +6,8 @@ import { upload } from '../services/upload.service';
 const router = Router();
 const uploadController = new UploadController();
 
-// Configure multer for single image upload
 const uploadImage = upload.single('image');
 
-// POST /api/upload/image - Upload a single image
 router.post(
   '/image',
   requireAuth,

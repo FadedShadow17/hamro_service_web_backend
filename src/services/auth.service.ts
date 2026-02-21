@@ -2,7 +2,6 @@ import jwt, { SignOptions, JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { env } from '../config/env';
 
-// JWT Token utilities
 export interface TokenPayload {
   id: string;
   email: string;
@@ -35,7 +34,6 @@ export function verifyToken(token: string): TokenPayload {
   }
 }
 
-// Password utilities
 export async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, env.bcryptSaltRounds);
 }

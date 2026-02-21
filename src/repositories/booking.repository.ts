@@ -14,12 +14,11 @@ export class BookingRepository implements IBookingRepository {
         return null;
       }
 
-      // Conditionally populate providerId if it exists
       if (booking.providerId) {
         try {
           await booking.populate('providerId');
         } catch (populateError) {
-          // Log but don't fail - providerId might reference a non-existent document
+
           console.warn('[Booking Repository] Failed to populate providerId:', {
             bookingId: id,
             providerId: booking.providerId,
@@ -48,7 +47,7 @@ export class BookingRepository implements IBookingRepository {
       .populate('userId')
       .populate('serviceId')
       .sort({ date: -1, createdAt: -1 });
-    // Populate providerId only for bookings that have it
+
     for (const booking of bookings) {
       if (booking.providerId) {
         await booking.populate('providerId');
@@ -71,51 +70,69 @@ export class BookingRepository implements IBookingRepository {
     return bookings.map(this.mapToEntity);
   }
 
-  /**
-   * Find available bookings (unassigned) and bookings assigned to a specific provider
-   * Returns:
-   * - All PENDING bookings with providerId = null (available to claim)
-   * - All bookings where providerId = providerId (already claimed by this provider)
-   * 
-   * Note: Category filtering for unassigned bookings is done in the use case layer
-   * to allow for proper category matching logic
-   */
+  
   async findAvailableAndAssignedBookings(providerId: string, status?: BookingStatus): Promise<BookingEntity[]> {
-    // Query: (status = PENDING AND providerId = null) OR (providerId = providerId)
-    // This shows:
-    // - Unassigned PENDING bookings (available to claim)
-    // - All bookings assigned to this provider (any status)
+    console.log('[BookingRepository] findAvailableAndAssignedBookings called:', { providerId, status });
+
+    // Query for unassigned bookings (providerId is null, undefined, or doesn't exist)
+    // and bookings assigned to this provider
+    // Flatten the $or to avoid nested $or which MongoDB doesn't support
     const query: any = {
       $or: [
         { status: 'PENDING', providerId: null },
+        { status: 'PENDING', providerId: { $exists: false } },
         { providerId: providerId },
       ],
     };
-    
-    // If status filter is provided, apply it
+
     if (status) {
-      // For status filter:
-      // - If PENDING: show unassigned PENDING OR assigned PENDING to this provider
-      // - For other statuses: only show bookings assigned to this provider with that status
       if (status === 'PENDING') {
         query.$or = [
           { status: 'PENDING', providerId: null },
+          { status: 'PENDING', providerId: { $exists: false } },
           { providerId: providerId, status: 'PENDING' },
         ];
       } else {
-        // For CONFIRMED, COMPLETED, DECLINED, CANCELLED: only show if assigned to this provider
         query.$or = [
           { providerId: providerId, status },
         ];
       }
     }
     
+    console.log('[BookingRepository] Query:', JSON.stringify(query, null, 2));
+    
     const bookings = await Booking.find(query)
       .populate('userId')
       .populate('serviceId')
       .sort({ date: -1, createdAt: -1 });
     
-    return bookings.map(this.mapToEntity);
+    console.log('[BookingRepository] Found bookings:', {
+      count: bookings.length,
+      bookings: bookings.map(b => ({
+        id: b._id.toString(),
+        serviceId: b.serviceId,
+        serviceIdType: typeof b.serviceId,
+        serviceIdIsObject: typeof b.serviceId === 'object',
+        serviceName: (b.serviceId as any)?.name,
+        providerId: b.providerId,
+        status: b.status,
+      })),
+    });
+    
+    const entities = bookings.map(this.mapToEntity);
+    console.log('[BookingRepository] Mapped entities:', {
+      count: entities.length,
+      entities: entities.map(e => ({
+        id: e.id,
+        serviceId: e.serviceId,
+        hasService: !!e.service,
+        serviceName: e.service?.name,
+        providerId: e.providerId,
+        status: e.status,
+      })),
+    });
+    
+    return entities;
   }
 
   async findByProviderDateAndTime(providerId: string, date: string, timeSlot: string): Promise<BookingEntity | null> {
@@ -141,7 +158,7 @@ export class BookingRepository implements IBookingRepository {
     if (booking && booking.providerId) {
       await booking.populate('providerId');
     }
-    // Re-populate to ensure all fields are fresh
+
     if (booking) {
       await booking.populate('userId');
       await booking.populate('serviceId');
@@ -153,12 +170,11 @@ export class BookingRepository implements IBookingRepository {
   }
 
   private mapToEntity(booking: IBooking): BookingEntity {
-    // Check if serviceId is populated (has name property)
+
     const serviceId = (booking.serviceId as any)?._id 
       ? (booking.serviceId as any)._id.toString() 
       : booking.serviceId.toString();
-    
-    // Extract service details if populated
+
     const service = (booking.serviceId as any)?.name 
       ? {
           id: (booking.serviceId as any)._id.toString(),
@@ -168,7 +184,6 @@ export class BookingRepository implements IBookingRepository {
         }
       : undefined;
 
-    // Extract user details if populated (for provider dashboard)
     const user = (booking.userId as any)?.name
       ? {
           id: (booking.userId as any)._id.toString(),
@@ -178,7 +193,6 @@ export class BookingRepository implements IBookingRepository {
         }
       : undefined;
 
-    // Extract provider details if populated (for user dashboard)
     const provider = (booking.providerId as any)?.fullName || (booking.providerId as any)?._id
       ? {
           id: (booking.providerId as any)._id.toString(),
@@ -188,20 +202,18 @@ export class BookingRepository implements IBookingRepository {
         }
       : undefined;
 
-    // Extract userId correctly - handle both ObjectId and populated object
     let userId: string;
     if (typeof booking.userId === 'object' && (booking.userId as any)._id) {
-      // If populated as object, use _id
+
       userId = (booking.userId as any)._id.toString();
     } else {
-      // Otherwise use toString() directly
+
       userId = booking.userId.toString();
     }
 
-    // Extract providerId correctly - handle both ObjectId and populated object
     let providerId: string | null = null;
     if (booking.providerId) {
-      // If populated as object, use _id; otherwise use toString() directly
+
       if (typeof booking.providerId === 'object' && (booking.providerId as any)._id) {
         providerId = (booking.providerId as any)._id.toString();
       } else {

@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { VERIFICATION_STATUS, PROVIDER_ROLES } from '../config/constants';
 
-// Nepal phone number validation: +977-XXXXXXXXX (9-10 digits)
 const nepalPhoneRegex = /^\+977-[0-9]{9,10}$/;
 
 export const submitVerificationSchema = z.object({
@@ -36,7 +35,7 @@ export const submitVerificationSchema = z.object({
 export type SubmitVerificationDTO = z.infer<typeof submitVerificationSchema>;
 
 export const reviewVerificationSchema = z.object({
-  status: z.enum([VERIFICATION_STATUS.APPROVED, VERIFICATION_STATUS.REJECTED] as [string, string]),
+  status: z.enum([VERIFICATION_STATUS.VERIFIED, VERIFICATION_STATUS.PENDING] as [string, string]),
   rejectionReason: z.string().max(500, 'Rejection reason cannot exceed 500 characters').optional(),
 });
 

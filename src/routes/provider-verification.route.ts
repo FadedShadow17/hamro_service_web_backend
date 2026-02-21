@@ -7,7 +7,6 @@ import { upload } from '../services/upload.service';
 const router = Router();
 const verificationController = new ProviderVerificationController();
 
-// Configure multer for multiple file fields
 const uploadFields = upload.fields([
   { name: 'citizenshipFront', maxCount: 1 },
   { name: 'citizenshipBack', maxCount: 1 },
@@ -15,7 +14,6 @@ const uploadFields = upload.fields([
   { name: 'selfie', maxCount: 1 },
 ]);
 
-// POST /api/provider/verification - Submit verification documents
 router.post(
   '/',
   requireAuth,
@@ -24,7 +22,6 @@ router.post(
   (req, res, next) => verificationController.submitVerification(req, res, next)
 );
 
-// GET /api/provider/verification - Get verification status
 router.get(
   '/',
   requireAuth,
@@ -32,7 +29,6 @@ router.get(
   (req, res, next) => verificationController.getVerificationStatus(req, res, next)
 );
 
-// GET /api/provider/me/verification - Get verification summary (status and role only)
 router.get(
   '/me/verification',
   requireAuth,
@@ -40,11 +36,10 @@ router.get(
   (req, res, next) => verificationController.getVerificationSummary(req, res, next)
 );
 
-// PATCH /api/admin/provider-verification/:providerId - Review verification (Admin)
 router.patch(
   '/:providerId',
   requireAuth,
-  // TODO: Add admin role check
+
   (req, res, next) => verificationController.reviewVerification(req, res, next)
 );
 

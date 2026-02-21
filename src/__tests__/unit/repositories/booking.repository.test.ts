@@ -10,7 +10,7 @@ describe('Booking Repository Unit Tests', () => {
   let testServiceId: string;
 
   beforeAll(async () => {
-    // Create test user
+
     const testUser = await UserModel.create({
       name: 'Booking Repo Test',
       email: 'bookingrepo@example.com',
@@ -19,7 +19,6 @@ describe('Booking Repository Unit Tests', () => {
     });
     testUserId = testUser._id.toString();
 
-    // Get or create a test service
     const services = await Service.find().limit(1);
     if (services.length > 0) {
       testServiceId = services[0]._id.toString();

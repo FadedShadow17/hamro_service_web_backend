@@ -53,7 +53,6 @@ const availabilitySchema = new Schema<IAvailability>(
   }
 );
 
-// Unique constraint: one availability record per provider per day
 availabilitySchema.index({ providerId: 1, dayOfWeek: 1 }, { unique: true });
 availabilitySchema.index({ providerId: 1 });
 

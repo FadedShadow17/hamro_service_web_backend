@@ -7,10 +7,7 @@ import { HttpError } from '../errors/http-error';
 import { getFileUrl } from '../services/upload.service';
 
 export class ProviderVerificationController {
-  /**
-   * Submit verification documents
-   * POST /api/provider/verification
-   */
+  
   async submitVerification(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -21,7 +18,6 @@ export class ProviderVerificationController {
       const providerProfileRepo = new ProviderProfileRepository();
       let profile = await providerProfileRepo.findByUserId(req.user.id);
 
-      // Parse form data (files are already uploaded via multer)
       let address;
       try {
         address = req.body.address 
@@ -35,7 +31,6 @@ export class ProviderVerificationController {
         return;
       }
 
-      // Clean phone number - remove any spaces
       const phoneNumber = req.body.phoneNumber ? String(req.body.phoneNumber).trim().replace(/\s+/g, '') : undefined;
 
       const body = {
@@ -44,19 +39,17 @@ export class ProviderVerificationController {
         citizenshipNumber: req.body.citizenshipNumber?.trim(),
         serviceRole: req.body.serviceRole,
         address: address,
-        // Images are optional - only include if uploaded
+
         ...(req.files && typeof req.files === 'object' && 'citizenshipFront' in req.files && Array.isArray(req.files.citizenshipFront) && req.files.citizenshipFront[0] && { citizenshipFrontImage: getFileUrl(req.files.citizenshipFront[0].filename) }),
         ...(req.files && typeof req.files === 'object' && 'citizenshipBack' in req.files && Array.isArray(req.files.citizenshipBack) && req.files.citizenshipBack[0] && { citizenshipBackImage: getFileUrl(req.files.citizenshipBack[0].filename) }),
         ...(req.files && typeof req.files === 'object' && 'profileImage' in req.files && Array.isArray(req.files.profileImage) && req.files.profileImage[0] && { profileImage: getFileUrl(req.files.profileImage[0].filename) }),
         ...(req.files && typeof req.files === 'object' && 'selfie' in req.files && Array.isArray(req.files.selfie) && req.files.selfie[0] && { selfieImage: getFileUrl(req.files.selfie[0].filename) }),
       };
 
-      // Validate
       const dto = submitVerificationSchema.parse(body);
 
-      // If profile doesn't exist, create it with verification data
       if (!profile) {
-        // Get area from address district if it matches a Kathmandu area, otherwise use first area as default
+
         const area = dto.address?.district && KATHMANDU_AREAS.includes(dto.address.district as any) 
           ? dto.address.district 
           : KATHMANDU_AREAS[0]; // Default to first area if not found
@@ -67,8 +60,7 @@ export class ProviderVerificationController {
           area: area as any,
           phone: dto.phoneNumber,
           active: true,
-          verificationStatus: VERIFICATION_STATUS.APPROVED,
-          verifiedAt: new Date(),
+          verificationStatus: VERIFICATION_STATUS.PENDING,
           fullName: dto.fullName,
           phoneNumber: dto.phoneNumber,
           citizenshipNumber: dto.citizenshipNumber,
@@ -80,16 +72,16 @@ export class ProviderVerificationController {
           selfieImage: dto.selfieImage || undefined,
         });
       } else {
-        // Update existing profile with verification data - Auto-approve upon submission
+
         const updateData: any = {
           fullName: dto.fullName,
           phoneNumber: dto.phoneNumber,
           citizenshipNumber: dto.citizenshipNumber,
           serviceRole: dto.serviceRole as any,
           address: dto.address,
-          verificationStatus: VERIFICATION_STATUS.APPROVED,
-          verifiedAt: new Date(),
-          rejectionReason: undefined, // Clear any previous rejection reason
+          verificationStatus: VERIFICATION_STATUS.PENDING,
+          verifiedAt: undefined,
+          rejectionReason: undefined,
         };
         if (dto.citizenshipFrontImage) updateData.citizenshipFrontImage = dto.citizenshipFrontImage;
         if (dto.citizenshipBackImage) updateData.citizenshipBackImage = dto.citizenshipBackImage;
@@ -106,7 +98,7 @@ export class ProviderVerificationController {
       }
 
       res.status(200).json({
-        message: 'Verification documents submitted successfully. You are now verified!',
+        message: 'Verification documents submitted successfully. Your verification is being processed by admin.',
         profile: profile,
       });
     } catch (error) {
@@ -114,10 +106,7 @@ export class ProviderVerificationController {
     }
   }
 
-  /**
-   * Get verification status
-   * GET /api/provider/verification
-   */
+  
   async getVerificationStatus(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -127,24 +116,6 @@ export class ProviderVerificationController {
 
       const providerProfileRepo = new ProviderProfileRepository();
       const profile = await providerProfileRepo.findByUserId(req.user.id);
-      
-      // If profile doesn't exist, return default NOT_SUBMITTED status
-      if (!profile) {
-        res.status(200).json({
-          verificationStatus: VERIFICATION_STATUS.NOT_SUBMITTED,
-          fullName: undefined,
-          phoneNumber: undefined,
-          citizenshipNumber: undefined,
-          serviceRole: undefined,
-          address: undefined,
-          citizenshipFrontImage: undefined,
-          citizenshipBackImage: undefined,
-          profileImage: undefined,
-          selfieImage: undefined,
-          verifiedAt: undefined,
-          rejectionReason: undefined,
-        });
-      }
 
       if (!profile) {
         res.status(200).json({
@@ -164,8 +135,17 @@ export class ProviderVerificationController {
         return;
       }
 
+      const hasDocuments = !!(
+        profile.citizenshipFrontImage ||
+        profile.citizenshipBackImage ||
+        profile.profileImage ||
+        profile.selfieImage
+      );
+
+      const status = hasDocuments ? profile.verificationStatus : VERIFICATION_STATUS.NOT_SUBMITTED;
+
       res.status(200).json({
-        verificationStatus: profile.verificationStatus,
+        verificationStatus: status,
         fullName: profile.fullName,
         phoneNumber: profile.phoneNumber,
         citizenshipNumber: profile.citizenshipNumber,
@@ -183,10 +163,7 @@ export class ProviderVerificationController {
     }
   }
 
-  /**
-   * Get verification summary (status and verification details)
-   * GET /api/provider/me/verification
-   */
+  
   async getVerificationSummary(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -196,8 +173,7 @@ export class ProviderVerificationController {
 
       const providerProfileRepo = new ProviderProfileRepository();
       const profile = await providerProfileRepo.findByUserId(req.user.id);
-      
-      // If profile doesn't exist, return default NOT_SUBMITTED status
+
       if (!profile) {
         res.status(200).json({
           status: VERIFICATION_STATUS.NOT_SUBMITTED,
@@ -212,8 +188,17 @@ export class ProviderVerificationController {
         return;
       }
 
+      const hasDocuments = !!(
+        profile.citizenshipFrontImage ||
+        profile.citizenshipBackImage ||
+        profile.profileImage ||
+        profile.selfieImage
+      );
+
+      const status = hasDocuments ? profile.verificationStatus : VERIFICATION_STATUS.NOT_SUBMITTED;
+
       res.status(200).json({
-        status: profile.verificationStatus,
+        status: status,
         fullName: profile.fullName,
         phoneNumber: profile.phoneNumber,
         citizenshipNumber: profile.citizenshipNumber,
@@ -227,10 +212,7 @@ export class ProviderVerificationController {
     }
   }
 
-  /**
-   * Review verification (Admin only)
-   * PATCH /api/admin/provider-verification/:providerId
-   */
+  
   async reviewVerification(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -238,10 +220,9 @@ export class ProviderVerificationController {
         return;
       }
 
-      // TODO: Add admin role check
-      // if (req.user.role !== USER_ROLES.ADMIN) {
-      //   return res.status(403).json({ message: 'Admin access required' });
-      // }
+
+
+
 
       const { providerId } = req.params;
       const dto = reviewVerificationSchema.parse(req.body);
@@ -258,11 +239,11 @@ export class ProviderVerificationController {
         verificationStatus: dto.status,
       };
 
-      if (dto.status === VERIFICATION_STATUS.APPROVED) {
+      if (dto.status === VERIFICATION_STATUS.VERIFIED) {
         updateData.verifiedAt = new Date();
         updateData.rejectionReason = undefined;
-      } else if (dto.status === VERIFICATION_STATUS.REJECTED) {
-        updateData.rejectionReason = dto.rejectionReason;
+      } else if (dto.status === VERIFICATION_STATUS.PENDING) {
+        updateData.rejectionReason = undefined;
         updateData.verifiedAt = undefined;
       }
 

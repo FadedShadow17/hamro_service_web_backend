@@ -18,6 +18,7 @@ import serviceProviderRoutes from './routes/service-provider.routes';
 import usersRoutes from './routes/users.route';
 import paymentsRoutes from './routes/payments.route';
 import uploadRoutes from './routes/upload.route';
+import notificationsRoutes from './routes/notifications.route';
 import { errorHandler } from './middlewares/error-handler';
 
 const app = express();
@@ -57,6 +58,7 @@ app.use('/api/service-provider', serviceProviderRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 app.get('/', (req, res) => {
   res.json({ status: 'ok', service: 'hamro-service-backend' });

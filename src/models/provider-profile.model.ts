@@ -8,7 +8,7 @@ export interface IProviderProfile extends Document {
   phone?: string;
   bio?: string;
   active: boolean;
-  // Verification fields
+
   verificationStatus: typeof VERIFICATION_STATUS[keyof typeof VERIFICATION_STATUS];
   fullName?: string;
   phoneNumber?: string; // Nepal format: +977-XXXXXXXXX
@@ -64,11 +64,11 @@ const providerProfileSchema = new Schema<IProviderProfile>(
       type: Boolean,
       default: true,
     },
-    // Verification fields
+
     verificationStatus: {
       type: String,
       enum: Object.values(VERIFICATION_STATUS),
-      default: VERIFICATION_STATUS.NOT_SUBMITTED,
+      default: VERIFICATION_STATUS.PENDING,
     },
     fullName: {
       type: String,
@@ -152,7 +152,6 @@ const providerProfileSchema = new Schema<IProviderProfile>(
   }
 );
 
-// Index for faster queries
 providerProfileSchema.index({ userId: 1 });
 providerProfileSchema.index({ area: 1, active: 1 });
 

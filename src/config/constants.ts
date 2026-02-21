@@ -1,4 +1,4 @@
-// User Roles
+
 export const USER_ROLES = {
   USER: 'user',
   PROVIDER: 'provider',
@@ -8,7 +8,6 @@ export const USER_ROLES = {
 
 export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
 
-// Booking Status
 export const BOOKING_STATUS = {
   PENDING: 'PENDING',
   CONFIRMED: 'CONFIRMED',
@@ -19,7 +18,6 @@ export const BOOKING_STATUS = {
 
 export type BookingStatus = typeof BOOKING_STATUS[keyof typeof BOOKING_STATUS];
 
-// Kathmandu Areas
 export const KATHMANDU_AREAS = [
   'Baneshwor',
   'Koteshwor',
@@ -35,10 +33,8 @@ export const KATHMANDU_AREAS = [
 
 export type KathmanduArea = typeof KATHMANDU_AREAS[number];
 
-// City (fixed to Kathmandu)
 export const CITY = 'Kathmandu' as const;
 
-// Day of Week (0 = Sunday, 6 = Saturday)
 export const DAYS_OF_WEEK = {
   SUNDAY: 0,
   MONDAY: 1,
@@ -49,17 +45,14 @@ export const DAYS_OF_WEEK = {
   SATURDAY: 6,
 } as const;
 
-// Provider Verification Status
 export const VERIFICATION_STATUS = {
-  NOT_SUBMITTED: 'NOT_SUBMITTED',
-  PENDING_REVIEW: 'PENDING_REVIEW',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
+  NOT_SUBMITTED: 'not_submitted',
+  PENDING: 'pending',
+  VERIFIED: 'verified',
 } as const;
 
 export type VerificationStatus = typeof VERIFICATION_STATUS[keyof typeof VERIFICATION_STATUS];
 
-// Provider Service Roles (Nepal Context)
 export const PROVIDER_ROLES = [
   'Plumber',
   'Electrician',

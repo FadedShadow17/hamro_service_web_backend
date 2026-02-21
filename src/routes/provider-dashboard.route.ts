@@ -6,7 +6,6 @@ import { USER_ROLES } from '../config/constants';
 const router = Router();
 const bookingsController = new BookingsController();
 
-// GET /api/provider/dashboard/summary - Get provider dashboard summary
 router.get('/summary', requireAuth, requireRole(USER_ROLES.PROVIDER), (req, res, next) =>
   bookingsController.getProviderDashboardSummary(req, res, next)
 );
