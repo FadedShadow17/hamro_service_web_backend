@@ -4,7 +4,7 @@ import { ServiceRepository } from '../../repositories/service.repository';
 import { ProviderProfileRepository } from '../../repositories/provider-profile.repository';
 import { NotificationRepository } from '../../repositories/notification.repository';
 import { BookingEntity } from '../../types/booking.entity';
-import { BookingStatus, BOOKING_STATUS } from '../../config/constants';
+import { BookingStatus, BOOKING_STATUS, VERIFICATION_STATUS } from '../../config/constants';
 import { HttpError } from '../../errors/http-error';
 import { isCategoryMatch } from '../category-matcher.service';
 import mongoose from 'mongoose';
@@ -88,6 +88,45 @@ export class UpdateBookingStatusUseCase {
         if (!providerProfile) {
           throw new HttpError(404, 'Provider profile not found', undefined, 'PROVIDER_PROFILE_NOT_FOUND');
         }
+
+        console.info('[Booking Accept] Provider profile verification check:', {
+          bookingId,
+          providerId: userId,
+          verificationStatus: providerProfile.verificationStatus,
+          verificationStatusType: typeof providerProfile.verificationStatus,
+          expectedStatus: VERIFICATION_STATUS.VERIFIED,
+          expectedStatusType: typeof VERIFICATION_STATUS.VERIFIED,
+          statusMatches: providerProfile.verificationStatus === VERIFICATION_STATUS.VERIFIED,
+          statusEquals: String(providerProfile.verificationStatus) === String(VERIFICATION_STATUS.VERIFIED),
+          rawComparison: `${providerProfile.verificationStatus} === ${VERIFICATION_STATUS.VERIFIED}`,
+        });
+
+        if (providerProfile.verificationStatus !== VERIFICATION_STATUS.VERIFIED) {
+          console.warn('[Booking Accept] Provider verification status check failed:', {
+            bookingId,
+            providerId: userId,
+            verificationStatus: providerProfile.verificationStatus,
+            verificationStatusString: String(providerProfile.verificationStatus),
+            expectedStatus: VERIFICATION_STATUS.VERIFIED,
+            expectedStatusString: String(VERIFICATION_STATUS.VERIFIED),
+            areEqual: providerProfile.verificationStatus === VERIFICATION_STATUS.VERIFIED,
+            stringEqual: String(providerProfile.verificationStatus) === String(VERIFICATION_STATUS.VERIFIED),
+          });
+          
+          if (providerProfile.verificationStatus === VERIFICATION_STATUS.PENDING) {
+            throw new HttpError(403, 'Your verification is pending. Please wait for admin approval before accepting bookings.', undefined, 'VERIFICATION_PENDING');
+          } else if (providerProfile.verificationStatus === VERIFICATION_STATUS.NOT_SUBMITTED) {
+            throw new HttpError(403, 'Please complete your verification to accept bookings. You need to submit your verification documents first.', undefined, 'VERIFICATION_NOT_SUBMITTED');
+          } else {
+            throw new HttpError(403, `You must be verified to accept bookings. Current status: "${providerProfile.verificationStatus || 'unknown'}". Expected: "${VERIFICATION_STATUS.VERIFIED}". Please complete your verification.`, undefined, 'VERIFICATION_REQUIRED');
+          }
+        }
+
+        console.info('[Booking Accept] Verification status check passed:', {
+          bookingId,
+          providerId: userId,
+          verificationStatus: providerProfile.verificationStatus,
+        });
 
         if (!providerProfile.serviceRole) {
           throw new HttpError(403, 'You are not verified for this service category. Please complete your verification with a service role.', undefined, 'CATEGORY_NOT_ALLOWED');

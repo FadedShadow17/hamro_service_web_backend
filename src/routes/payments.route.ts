@@ -14,4 +14,8 @@ router.post('/:bookingId/pay', requireAuth, requireRole(USER_ROLES.USER), (req, 
   paymentsController.payForBooking(req, res, next)
 );
 
+router.get('/me/history', requireAuth, requireRole(USER_ROLES.USER), (req, res, next) =>
+  paymentsController.getPaymentHistory(req, res, next)
+);
+
 export default router;

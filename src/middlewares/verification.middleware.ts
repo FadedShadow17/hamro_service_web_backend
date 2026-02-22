@@ -24,13 +24,10 @@ export async function requireVerification(
       return;
     }
 
-    if (profile.verificationStatus !== VERIFICATION_STATUS.APPROVED) {
+    if (profile.verificationStatus !== VERIFICATION_STATUS.VERIFIED) {
       const statusMessages: Record<string, string> = {
         [VERIFICATION_STATUS.NOT_SUBMITTED]: 'Please submit your verification documents first',
-        [VERIFICATION_STATUS.PENDING_REVIEW]: 'Your verification is pending review. Please wait for approval.',
-        [VERIFICATION_STATUS.REJECTED]: profile.rejectionReason 
-          ? `Verification rejected: ${profile.rejectionReason}. Please resubmit with corrected documents.`
-          : 'Your verification was rejected. Please resubmit with corrected documents.',
+        [VERIFICATION_STATUS.PENDING]: 'Your verification is pending. Please wait for admin approval.',
       };
 
       res.status(403).json({

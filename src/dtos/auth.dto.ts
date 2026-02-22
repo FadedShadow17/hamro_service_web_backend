@@ -26,9 +26,10 @@ export const registerSchema = z.object({
     errorMap: () => ({ message: `Role must be either "${USER_ROLES.USER}" or "${USER_ROLES.PROVIDER}"` }),
   }).optional(),
 }).transform((data) => {
-
+  // Trim password to ensure consistency between registration and login
   return {
     ...data,
+    password: data.password.trim(),
     phone: data.phone || data.phoneNumber,
   };
 });
@@ -39,6 +40,12 @@ export const loginSchema = z.object({
     .string()
     .min(1, 'Password is required')
     .max(100, 'Password must not exceed 100 characters'),
+}).transform((data) => {
+  // Trim password to ensure consistency between registration and login
+  return {
+    ...data,
+    password: data.password.trim(),
+  };
 });
 
 export type RegisterDTO = z.infer<typeof registerSchema>;

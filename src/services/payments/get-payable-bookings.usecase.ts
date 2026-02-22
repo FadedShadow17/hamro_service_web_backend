@@ -10,12 +10,8 @@ export class GetPayableBookingsUseCase {
     this.bookingRepository = bookingRepository || new BookingRepository();
   }
 
-  
   async execute(userId: string): Promise<BookingEntity[]> {
-
-
     const bookings = await this.bookingRepository.findByUserId(userId, BOOKING_STATUS.CONFIRMED);
-    
     return bookings;
   }
 }

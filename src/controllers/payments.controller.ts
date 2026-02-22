@@ -2,11 +2,11 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { GetPayableBookingsUseCase } from '../services/payments/get-payable-bookings.usecase';
 import { PayForBookingUseCase } from '../services/payments/pay-for-booking.usecase';
+import { GetPaymentHistoryUseCase } from '../services/payments/get-payment-history.usecase';
 import { payForBookingSchema } from '../dtos/payment.dto';
 import { USER_ROLES } from '../config/constants';
 
 export class PaymentsController {
-  
   async getMyPayableBookings(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -28,7 +28,6 @@ export class PaymentsController {
     }
   }
 
-  
   async payForBooking(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -51,6 +50,27 @@ export class PaymentsController {
         message: 'Payment processed successfully',
         booking,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getPaymentHistory(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'Unauthorized', code: 'UNAUTHORIZED' });
+        return;
+      }
+
+      if (req.user.role !== USER_ROLES.USER) {
+        res.status(403).json({ message: 'Only users can view their payment history', code: 'FORBIDDEN' });
+        return;
+      }
+
+      const useCase = new GetPaymentHistoryUseCase();
+      const payments = await useCase.execute(req.user.id);
+
+      res.status(200).json({ payments });
     } catch (error) {
       next(error);
     }
